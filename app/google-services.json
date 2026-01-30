@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "383780995391",
+    "project_id": "grow-together-637be",
+    "storage_bucket": "grow-together-637be.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:383780995391:android:373aac4ba7aedb3d59538a",
+        "android_client_info": {
+          "package_name": "com.example.timetableapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCitjAa2jD7j1NzVDr_PFLaO81mD7dBq3I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:title="Profile"
+        android:id="@+id/menuMyProfile"
+        android:icon="@drawable/profile"
+        app:showAsAction="always"/>
+
+    <item
+        android:title="Share Timetable"
+        android:id="@+id/menuSharetimetable"
+        app:showAsAction="never"/>
+
+    <item
+        android:title="settings"
+        android:id="@+id/menusettings"
+        app:showAsAction="never"/>
+
+    <item
+        android:title="About us"
+        android:id="@+id/menuAboutus"
+        app:showAsAction="never"/>
+
+    <item
+        android:title="Contact us"
+        android:id="@+id/menuContactus"
+        app:showAsAction="never"/>
+
+    <item
+        android:title="Logout"
+        android:id="@+id/menuLogout"
+        android:icon="@drawable/logout"
+        app:showAsAction="always"/>
+
+</menu>

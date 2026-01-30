@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:title="Home"
+        android:id="@+id/bottomnavmenuHome"
+        android:icon="@drawable/icon_home"
+        />
+
+    <item
+        android:title="Timetable"
+        android:id="@+id/homebottomnavTimetable"
+        android:icon="@drawable/icon_timetable_"
+        />
+
+    <item
+        android:id="@+id/bottomnavmenuManage"
+        android:title="Manage"
+        android:icon="@drawable/icon_manage_"
+        />
+
+</menu>
