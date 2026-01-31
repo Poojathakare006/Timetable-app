@@ -70,19 +70,19 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
             ad.setTitle("Timetable");
             ad.setMessage("Are you sure you want to logout?");
 
-            ad.setPositiveButton("cancel", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                }
-            });
-
-            ad.setNegativeButton("Logout", new DialogInterface.OnClickListener() {
+            ad.setPositiveButton("Logout", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                  Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
                  editor.putBoolean("isLogin",false).apply();
                  startActivity(intent);
                  finish();
+                }
+            });
+
+            ad.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
                 }
             });
             ad.create().show();
