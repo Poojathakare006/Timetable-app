@@ -31,8 +31,12 @@ public class
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
+
+        //DATABASE
         DBHelper dpHelper = new DBHelper(this);
         // database cheak
+
+
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         if (db != null) {
             Toast.makeText(this, "Database created successfully", Toast.LENGTH_SHORT).show();
