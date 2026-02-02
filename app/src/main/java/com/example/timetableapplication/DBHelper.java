@@ -20,11 +20,11 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL(
                 "CREATE TABLE users(" +
                         "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                        "name TEXT," +
-                        "email TEXT," +
-                        "mobile TEXT," +
+                        "name TEXT ," +
+                        "email TEXT UNIQUE," +
+                        "mobile TEXT UNIQUE," +
                         "username TEXT UNIQUE," +
-                        "password TEXT)"
+                        "password TEXT UNIQUE)"
         );
     }
 
