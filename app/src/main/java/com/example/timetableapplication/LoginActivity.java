@@ -26,6 +26,7 @@ public class LoginActivity extends AppCompatActivity {
     TextView tvNewUserClickHere;
     SharedPreferences preferences;
     SharedPreferences.Editor editor;
+    DBHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +50,8 @@ public class LoginActivity extends AppCompatActivity {
         {
 
             setContentView(R.layout.activity_login);
+            dbHelper = new DBHelper(this);
+
 
             etLoginUsername = findViewById(R.id.etLoginUsername);
             etLoginPassword = findViewById(R.id.etLoginPassword);

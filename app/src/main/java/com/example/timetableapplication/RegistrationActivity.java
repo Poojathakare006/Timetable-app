@@ -1,6 +1,7 @@
 package com.example.timetableapplication;
 
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.method.HideReturnsTransformationMethod;
@@ -15,19 +16,27 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.behavior.HideViewOnScrollBehavior;
 
-public class RegistrationActivity extends AppCompatActivity {
+public class
+    RegistrationActivity extends AppCompatActivity {
 
     EditText etRegisterName, etRegisterMobileNumber, etRegisterEmailId, etRegisterUsername, etRegisterPassword;
 
     CheckBox cbRegisterShowAndHidePassword;
 
     Button btnRegisterRegister;
+    DBHelper dbHelper;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
+        DBHelper dpHelper = new DBHelper(this);
+        // database cheak
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        if (db != null) {
+            Toast.makeText(this, "Database created successfully", Toast.LENGTH_SHORT).show();
+        }
 
         etRegisterName = findViewById(R.id.etRegisterName);
         etRegisterMobileNumber = findViewById(R.id.etRegisterMobileNumber);
