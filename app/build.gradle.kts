@@ -46,5 +46,7 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
 
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+
+    implementation("androidx.recyclerview:recyclerview:1.4.0")
  
 }

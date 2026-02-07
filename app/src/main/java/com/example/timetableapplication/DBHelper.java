@@ -1,4 +1,3 @@
-
 package com.example.timetableapplication;
 
 import android.content.ContentValues;
@@ -12,19 +11,19 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String DBNAME = "UserDB.db";
 
     public DBHelper(Context context) {
-        super(context, DBNAME, null, 1);
+        super(context, DBNAME, null, 2); // Incremented database version
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(
                 "CREATE TABLE users(" +
-                        "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                           "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                         "name TEXT ," +
                         "email TEXT UNIQUE," +
                         "mobile TEXT UNIQUE," +
                         "username TEXT UNIQUE," +
-                        "password TEXT UNIQUE)"
+                        "password TEXT)" // Removed UNIQUE from password
         );
     }
 
