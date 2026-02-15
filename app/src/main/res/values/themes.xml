@@ -2,12 +2,12 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.TimetableApplication" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/darkred</item>
     </style>
 
     <style name="HomeActivity" parent="Theme.Material3.DayNight">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/darkred</item>
     </style>
 
     <style name="Theme.TimetableApplication" parent="Base.Theme.TimetableApplication" />

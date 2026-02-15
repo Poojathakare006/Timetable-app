@@ -1,0 +1,222 @@
+package com.example.timetableapplication;
+
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.text.InputType;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
+
+import java.util.Arrays;
+import java.util.List;
+
+public class SettingsActivity extends AppCompatActivity {
+
+    TextView tvEditProfile, tvChangePassword, tvClearHistory, tvDeleteAccount, tvColorScheme;
+    Button btnLogout;
+    SwitchCompat notificationSwitch;
+    DBHelper dbHelper;
+    SharedPreferences preferences;
+    private int tempSelectedThemeIndex;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_settings);
+
+        dbHelper = new DBHelper(this);
+        preferences = getSharedPreferences("user_details", MODE_PRIVATE);
+
+        tvEditProfile = findViewById(R.id.setting_edit_profile);
+        tvChangePassword = findViewById(R.id.setting_change_password);
+        tvClearHistory = findViewById(R.id.setting_clear_history);
+        tvDeleteAccount = findViewById(R.id.setting_delete_account);
+        btnLogout = findViewById(R.id.setting_logout);
+        notificationSwitch = findViewById(R.id.setting_notifications);
+        tvColorScheme = findViewById(R.id.setting_color_scheme);
+
+        notificationSwitch.setChecked(preferences.getBoolean("notifications_enabled", false));
+
+        tvEditProfile.setOnClickListener(v -> startActivity(new Intent(SettingsActivity.this, MyProfileActivity.class)));
+        btnLogout.setOnClickListener(v -> showLogoutDialog());
+        tvChangePassword.setOnClickListener(v -> showChangePasswordDialog());
+        tvDeleteAccount.setOnClickListener(v -> showDeleteAccountDialog());
+        tvClearHistory.setOnClickListener(v -> showClearHistoryDialog());
+        tvColorScheme.setOnClickListener(v -> showColorSchemeDialog());
+    }
+
+    private void showColorSchemeDialog() {
+        final String[] themes = {"Default", "Vibrant", "Pastel", "Corporate Blue", "Autumn Harvest", "Sunrise", "Emerald", "Lavender Bliss", "Minty Fresh"};
+        tempSelectedThemeIndex = preferences.getInt("timetable_theme", 0);
+
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_color_scheme_list, null);
+        ListView listView = dialogView.findViewById(R.id.color_scheme_list_view);
+
+        final ColorSchemeAdapter adapter = new ColorSchemeAdapter(this, Arrays.asList(themes), tempSelectedThemeIndex);
+        listView.setAdapter(adapter);
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Choose Color Scheme")
+                .setView(dialogView)
+                .setPositiveButton("OK", (d, which) -> {
+                    preferences.edit().putInt("timetable_theme", tempSelectedThemeIndex).apply();
+                    Toast.makeText(SettingsActivity.this, themes[tempSelectedThemeIndex] + " theme selected", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .create();
+
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            tempSelectedThemeIndex = position;
+            adapter.setSelectedIndex(position);
+        });
+
+        dialog.show();
+    }
+
+    // Custom Adapter for Color Scheme Dialog
+    private class ColorSchemeAdapter extends ArrayAdapter<String> {
+        private final List<String> themeNames;
+        private int selectedIndex;
+
+        public ColorSchemeAdapter(Context context, List<String> themeNames, int selectedIndex) {
+            super(context, R.layout.dialog_color_scheme_item, themeNames);
+            this.themeNames = themeNames;
+            this.selectedIndex = selectedIndex;
+        }
+
+        public void setSelectedIndex(int index) {
+            this.selectedIndex = index;
+            notifyDataSetChanged(); // This will redraw the entire list
+        }
+
+        @NonNull
+        @Override
+        public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+            ViewHolder holder;
+            if (convertView == null) {
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_color_scheme_item, parent, false);
+                holder = new ViewHolder();
+                holder.radioButton = convertView.findViewById(R.id.radio_button);
+                holder.themeName = convertView.findViewById(R.id.tv_theme_name);
+                convertView.setTag(holder);
+            } else {
+                holder = (ViewHolder) convertView.getTag();
+            }
+
+            holder.themeName.setText(themeNames.get(position));
+            holder.radioButton.setChecked(position == selectedIndex);
+
+            return convertView;
+        }
+
+        private class ViewHolder {
+            RadioButton radioButton;
+            TextView themeName;
+        }
+    }
+
+    // ... (other dialog methods for logout, password, etc. remain here) ...
+    private void showLogoutDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Logout", (dialog, which) -> {
+                    preferences.edit().clear().apply();
+                    Intent intent = new Intent(SettingsActivity.this, LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showChangePasswordDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Change Password");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 50, 50, 50);
+
+        final EditText oldPasswordInput = new EditText(this);
+        oldPasswordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        oldPasswordInput.setHint("Old Password");
+        layout.addView(oldPasswordInput);
+
+        final EditText newPasswordInput = new EditText(this);
+        newPasswordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        newPasswordInput.setHint("New Password");
+        layout.addView(newPasswordInput);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Change", (dialog, which) -> {
+            String oldPassword = oldPasswordInput.getText().toString();
+            String newPassword = newPasswordInput.getText().toString();
+            String username = preferences.getString("username", null);
+
+            if (username != null && dbHelper.checkLogin(username, oldPassword)) {
+                if (newPassword.length() >= 8) {
+                    dbHelper.updatePassword(username, newPassword);
+                    Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "New password must be at least 8 characters", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(this, "Old password is incorrect", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
+    }
+
+    private void showDeleteAccountDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Account")
+                .setMessage("This action is permanent and cannot be undone. Are you absolutely sure you want to delete your account and all associated data?")
+                .setPositiveButton("DELETE", (dialog, which) -> {
+                    String username = preferences.getString("username", null);
+                    if (username != null) {
+                        dbHelper.deleteUser(username);
+                        dbHelper.clearAllTimetableHistory();
+                        preferences.edit().clear().apply();
+                        Intent intent = new Intent(SettingsActivity.this, LoginActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        finish();
+                        Toast.makeText(this, "Account deleted successfully", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showClearHistoryDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Clear History")
+                .setMessage("Are you sure you want to delete all saved timetable PDFs? This action cannot be undone.")
+                .setPositiveButton("Clear", (dialog, which) -> {
+                    dbHelper.clearAllTimetableHistory();
+                    Toast.makeText(this, "Timetable history cleared", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+}

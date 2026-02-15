@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="vibrant_colors">
+        <item>#FF6F61</item> <!-- Coral -->
+        <item>#6B5B95</item> <!-- Muted Purple -->
+        <item>#88B04B</item> <!-- Pistachio -->
+        <item>#F7CAC9</item> <!-- Rose Quartz -->
+        <item>#92A8D1</item> <!-- Serenity Blue -->
+        <item>#955251</item> <!-- Faded Red -->
+        <item>#B565A7</item> <!-- Muted Pink -->
+        <item>#009B77</item> <!-- Teal -->
+        <item>#DD4124</item> <!-- Orange -->
+        <item>#45B8AC</item> <!-- Turquoise -->
+    </array>
+
+    <array name="pastel_colors">
+        <item>#B4F8C8</item> <!-- Light Green -->
+        <item>#A0E7E5</item> <!-- Light Blue -->
+        <item>#FFAEBC</item> <!-- Light Pink -->
+        <item>#FBE7C6</item> <!-- Light Yellow -->
+        <item>#D7E3FC</item> <!-- Light Periwinkle -->
+        <item>#D3C0F9</item> <!-- Light Lavender -->
+        <item>#F9D8D6</item> <!-- Light Coral -->
+        <item>#C8E6C9</item> <!-- Pale Green -->
+    </array>
+
+    <array name="corporate_blue_colors">
+        <item>#0D47A1</item> <!-- Dark Navy -->
+        <item>#1976D2</item> <!-- Strong Blue -->
+        <item>#2196F3</item> <!-- Standard Blue -->
+        <item>#64B5F6</item> <!-- Lighter Blue -->
+        <item>#BBDEFB</item> <!-- Pale Blue -->
+        <item>#0097A7</item> <!-- Strong Cyan -->
+        <item>#4DD0E1</item> <!-- Medium Cyan -->
+        <item>#B2EBF2</item> <!-- Light Cyan -->
+    </array>
+
+    <array name="autumn_harvest_colors">
+        <item>#BF360C</item> <!-- Deep Orange-Red -->
+        <item>#D84315</item> <!-- Strong Orange -->
+        <item>#F4511E</item> <!-- Bright Orange -->
+        <item>#FF7043</item> <!-- Lighter Orange -->
+        <item>#FFAB91</item> <!-- Pale Orange -->
+        <item>#795548</item> <!-- Brown -->
+        <item>#A1887F</item> <!-- Muted Brown -->
+    </array>
+
+    <array name="sunrise_colors">
+        <item>#FF8A65</item> <!-- Light Orange -->
+        <item>#FFB74D</item> <!-- Lighter Orange -->
+        <item>#FFD54F</item> <!-- Light Yellow -->
+        <item>#FFF176</item> <!-- Pale Yellow -->
+        <item>#E57373</item> <!-- Light Red -->
+        <item>#F06292</item> <!-- Light Pink -->
+    </array>
+
+    <array name="emerald_colors">
+        <item>#004D40</item> <!-- Dark Teal -->
+        <item>#00695C</item> <!-- Medium Teal -->
+        <item>#00796B</item> <!-- Teal -->
+        <item>#00897B</item> <!-- Lighter Teal -->
+        <item>#4DB6AC</item> <!-- Light Teal -->
+        <item>#A7FFEB</item> <!-- Pale Teal -->
+    </array>
+    
+    <array name="lavender_bliss_colors">
+        <item>#E6E6FA</item> <!-- Lavender -->
+        <item>#D8BFD8</item> <!-- Thistle -->
+        <item>#B19CD9</item> <!-- Light Purple -->
+        <item>#C3B1E1</item> <!-- Languid Lavender -->
+        <item>#DCD0FF</item> <!-- Pale Lavender -->
+    </array>
+
+    <array name="minty_fresh_colors">
+        <item>#98FF98</item> <!-- Mint Green -->
+        <item>#AFEEEE</item> <!-- Pale Turquoise -->
+        <item>#7FFFD4</item> <!-- Aquamarine -->
+        <item>#E0FFFF</item> <!-- Light Cyan -->
+        <item>#B2DFDB</item> <!-- Pale Teal -->
+    </array>
+</resources>

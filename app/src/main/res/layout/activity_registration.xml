@@ -1,116 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:layout_gravity="center"
-    android:background="@color/red"
+    android:background="@color/pink"
+    android:fillViewport="true"
     tools:context=".RegistrationActivity">
 
-    <androidx.cardview.widget.CardView
-        android:layout_gravity="center"
-        android:layout_width="wrap_content"
-        android:layout_height="550dp"
-        android:padding="30sp"
-        app:cardCornerRadius="20sp"
-        android:layout_marginTop="60dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-black"
+            android:text="Registration"
+            android:textColor="@color/black"
+            android:textSize="33sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/etRegistrationName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:hint="Name"
+            android:inputType="textPersonName" />
+
+        <EditText
+            android:id="@+id/etRegistrationEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="Email"
+            android:inputType="textEmailAddress" />
+
+        <EditText
+            android:id="@+id/etRegistrationMobile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="Mobile"
+            android:inputType="phone" />
+
+        <EditText
+            android:id="@+id/etRegistrationUsername"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="Username" />
+
+        <EditText
+            android:id="@+id/etRegistrationPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:hint="Password"
+            android:inputType="textPassword" />
+
+        <RadioGroup
+            android:id="@+id/rgUserType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="I am a:" />
+
+            <RadioButton
+                android:id="@+id/rbStudent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:checked="true"
+                android:text="Student" />
+
+            <RadioButton
+                android:id="@+id/rbTeacher"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Teacher" />
+        </RadioGroup>
+        
         <LinearLayout
-            android:layout_width="350dp"
+            android:id="@+id/student_fields_container"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <TextView
+            <EditText
+                android:id="@+id/etCourse"
                 android:layout_width="match_parent"
-                android:layout_height="65dp"
-                android:fontFamily="sans-serif"
-                android:text="Register Here"
-                android:textAlignment="center"
-                android:textColor="@color/black"
-                android:textSize="40dp"
-                android:textStyle="bold" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:hint="Course (e.g., BCA, BSc)" />
 
             <EditText
-                android:id="@+id/etRegisterName"
+                android:id="@+id/etYear"
                 android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:layout_marginTop="10sp"
-                android:hint="Enter your Name"
-                android:inputType="text"
-                android:textColor="@color/black"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:hint="Year / Semester" />
 
             <EditText
-                android:id="@+id/etRegisterEmailId"
+                android:id="@+id/etCollegeName"
                 android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:layout_marginTop="10sp"
-                android:hint="Enter your Email Id"
-                android:inputType="textEmailAddress"
-                android:textColor="@color/black"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <EditText
-                android:id="@+id/etRegisterMobileNumber"
-                android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:layout_marginTop="10sp"
-                android:hint="Enter your Mobile Number"
-                android:inputType="number"
-                android:textColor="@color/black"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <EditText
-                android:id="@+id/etRegisterUsername"
-                android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:layout_marginTop="10sp"
-                android:hint="Enter your Username"
-                android:inputType="text"
-                android:textColor="@color/black"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <EditText
-                android:id="@+id/etRegisterPassword"
-                android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:layout_marginTop="10sp"
-                android:hint="Enter your Password"
-                android:inputType="textPassword"
-                android:textColor="@color/black"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <CheckBox
-                android:id="@+id/cbRegisterShowAndHidePassword"
-                android:layout_width="match_parent"
-                android:layout_height="59dp"
-                android:fontFamily="sans-serif"
-                android:text="Show Password"
-                android:textSize="15sp"
-                android:textStyle="normal" />
-
-            <Button
-                android:id="@+id/btnRegisterRegister"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="8sp"
-                android:text="Register"
-                android:textColor="@color/white"
-                android:textSize="20sp"
-                android:textStyle="italic" />
-
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:hint="College Name" />
         </LinearLayout>
 
-    </androidx.cardview.widget.CardView>
+        <Button
+            android:id="@+id/btnRegister"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Register" />
 
-
+        <TextView
+            android:id="@+id/tvAlreadyRegistered"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Already Registered? Click here" />
 
     </LinearLayout>
+</ScrollView>

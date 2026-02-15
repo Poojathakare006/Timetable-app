@@ -1,33 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:weightSum="100"
     tools:context=".HomeActivity">
 
-    <FrameLayout
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/homeBottomNavigationView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="85"
-        android:id="@+id/homeFramelayout">
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/red"
+        app:itemIconTint="@color/black"
+        app:itemTextColor="@color/darkred"
+        app:menu="@menu/bottom_nav_menu" />
+
+    <FrameLayout
+        android:id="@+id/homeFramelayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/homeBottomNavigationView">
 
     </FrameLayout>
 
-
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="15"
-        android:id="@+id/homeBottomNavigationView"
-        android:background="@color/red"
-        app:menu="@menu/bottom_nav_menu"
-        app:itemTextColor="@color/darkred"
-        app:itemIconTint="@color/black"
-        />
-
-
-</LinearLayout>
+</RelativeLayout>

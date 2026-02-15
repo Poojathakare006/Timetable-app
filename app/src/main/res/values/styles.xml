@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="headerCell">
+        <item name="android:padding">10dp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:gravity">center</item>
+        <!-- The background is now set programmatically -->
+    </style>
+
+    <style name="timeCell">
+        <item name="android:padding">10dp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:gravity">center</item>
+        <!-- The background is now set programmatically -->
+    </style>
+
+    <style name="classCell">
+        <item name="android:padding">12dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">12sp</item>
+        <!-- The background is now set programmatically -->
+    </style>
+</resources>

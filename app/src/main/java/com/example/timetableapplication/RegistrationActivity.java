@@ -2,20 +2,25 @@ package com.example.timetableapplication;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.method.HideReturnsTransformationMethod;
-import android.text.method.PasswordTransformationMethod;
+import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 public class RegistrationActivity extends AppCompatActivity {
 
-    EditText etRegisterName, etRegisterMobileNumber, etRegisterEmailId, etRegisterUsername, etRegisterPassword;
-    CheckBox cbRegisterShowAndHidePassword;
-    Button btnRegisterRegister;
+    EditText etName, etEmail, etMobile, etUsername, etPassword, etCourse, etYear, etCollegeName;
+    RadioGroup rgUserType;
+    RadioButton rbStudent, rbTeacher;
+    LinearLayout studentFieldsContainer;
+    Button btnRegister;
+    TextView tvAlreadyRegistered;
     DBHelper dbHelper;
 
     @Override
@@ -25,60 +30,72 @@ public class RegistrationActivity extends AppCompatActivity {
 
         dbHelper = new DBHelper(this);
 
-        etRegisterName = findViewById(R.id.etRegisterName);
-        etRegisterMobileNumber = findViewById(R.id.etRegisterMobileNumber);
-        etRegisterEmailId = findViewById(R.id.etRegisterEmailId);
-        etRegisterUsername = findViewById(R.id.etRegisterUsername);
-        etRegisterPassword = findViewById(R.id.etRegisterPassword);
-        cbRegisterShowAndHidePassword = findViewById(R.id.cbRegisterShowAndHidePassword);
-        btnRegisterRegister = findViewById(R.id.btnRegisterRegister);
+        etName = findViewById(R.id.etRegistrationName);
+        etEmail = findViewById(R.id.etRegistrationEmail);
+        etMobile = findViewById(R.id.etRegistrationMobile);
+        etUsername = findViewById(R.id.etRegistrationUsername);
+        etPassword = findViewById(R.id.etRegistrationPassword);
+        rgUserType = findViewById(R.id.rgUserType);
+        rbStudent = findViewById(R.id.rbStudent);
+        rbTeacher = findViewById(R.id.rbTeacher);
+        studentFieldsContainer = findViewById(R.id.student_fields_container);
+        etCourse = findViewById(R.id.etCourse);
+        etYear = findViewById(R.id.etYear);
+        etCollegeName = findViewById(R.id.etCollegeName);
+        btnRegister = findViewById(R.id.btnRegister);
+        tvAlreadyRegistered = findViewById(R.id.tvAlreadyRegistered);
 
-        cbRegisterShowAndHidePassword.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                etRegisterPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+        rgUserType.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.rbStudent) {
+                studentFieldsContainer.setVisibility(View.VISIBLE);
             } else {
-                etRegisterPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
-            }
-            etRegisterPassword.setSelection(etRegisterPassword.getText().length());
-        });
-
-        btnRegisterRegister.setOnClickListener(view -> {
-            String name = etRegisterName.getText().toString();
-            String email = etRegisterEmailId.getText().toString();
-            String mobile = etRegisterMobileNumber.getText().toString();
-            String username = etRegisterUsername.getText().toString();
-            String password = etRegisterPassword.getText().toString();
-
-            if (name.isEmpty()) {
-                etRegisterName.setError("Please enter your Name");
-            } else if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                etRegisterEmailId.setError("Please enter a valid Email id");
-            } else if (mobile.length() < 10) {
-                etRegisterMobileNumber.setError("Please enter a valid 10-digit mobile number");
-            } else if (username.isEmpty()) {
-                etRegisterUsername.setError("Please enter a username");
-            } else if (password.isEmpty()) {
-                etRegisterPassword.setError("Please enter your password");
-            } else if (password.length() < 8) {
-                etRegisterPassword.setError("Password must be at least 8 characters");
-            } else if (!password.matches(".*[A-Z].*")) {
-                etRegisterPassword.setError("Password must contain at least one uppercase letter");
-            } else if (!password.matches(".*[a-z].*")) {
-                etRegisterPassword.setError("Password must contain at least one lowercase letter");
-            } else if (!password.matches(".*[0-9].*")) {
-                etRegisterPassword.setError("Password must contain at least one number");
-            } else if (!password.matches(".*[@#$%^&+=!].*")) {
-                etRegisterPassword.setError("Password must contain at least one special character (@#$%^&+=!)");
-            } else {
-                if (dbHelper.insertUser(name, email, mobile, username, password)) {
-                    Toast.makeText(this, "Registration Successful", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(RegistrationActivity.this, LoginActivity.class);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    Toast.makeText(this, "Registration failed. Username, email, or mobile may already be in use.", Toast.LENGTH_LONG).show();
-                }
+                studentFieldsContainer.setVisibility(View.GONE);
             }
         });
+
+        btnRegister.setOnClickListener(v -> registerUser());
+
+        tvAlreadyRegistered.setOnClickListener(v -> {
+            startActivity(new Intent(RegistrationActivity.this, LoginActivity.class));
+        });
+    }
+
+    private void registerUser() {
+        String name = etName.getText().toString().trim();
+        String email = etEmail.getText().toString().trim();
+        String mobile = etMobile.getText().toString().trim();
+        String username = etUsername.getText().toString().trim();
+        String password = etPassword.getText().toString().trim();
+        String userType = rbStudent.isChecked() ? "Student" : "Teacher";
+
+        String course = "";
+        String year = "";
+        String collegeName = "";
+
+        if (name.isEmpty()) {
+            etName.setError("Name is required");
+            return;
+        }
+        // ... add other validation as needed ...
+
+        if (userType.equals("Student")) {
+            course = etCourse.getText().toString().trim();
+            year = etYear.getText().toString().trim();
+            collegeName = etCollegeName.getText().toString().trim();
+            if (course.isEmpty() || year.isEmpty() || collegeName.isEmpty()) {
+                Toast.makeText(this, "Please fill all student fields", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+        boolean success = dbHelper.insertUser(name, email, mobile, username, password, userType, course, year, collegeName);
+
+        if (success) {
+            Toast.makeText(this, "Registration Successful", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(RegistrationActivity.this, LoginActivity.class));
+            finish();
+        } else {
+            Toast.makeText(this, "Registration failed. Username, email, or mobile may already exist.", Toast.LENGTH_LONG).show();
+        }
     }
 }

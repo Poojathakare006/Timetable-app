@@ -49,4 +49,6 @@ dependencies {
 
     implementation("androidx.recyclerview:recyclerview:1.4.0")
  
+    // iTextPDF for PDF generation
+    implementation("com.itextpdf:itext7-core:7.1.15")
 }

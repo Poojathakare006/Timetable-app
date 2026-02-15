@@ -63,14 +63,28 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         btnLoginLogin.setOnClickListener(v -> {
-            String username = etLoginUsername.getText().toString();
-            String password = etLoginPassword.getText().toString();
+            String username = etLoginUsername.getText().toString().trim();
+            String password = etLoginPassword.getText().toString().trim();
 
+            // Re-introducing detailed client-side validation
             if (username.isEmpty()) {
                 etLoginUsername.setError("Please enter Username");
+            } else if (username.length() < 8) {
+                etLoginUsername.setError("Username must be at least 8 characters");
             } else if (password.isEmpty()) {
                 etLoginPassword.setError("Please enter your Password");
+            } else if (password.length() < 8) {
+                etLoginPassword.setError("Password must be at least 8 characters");
+            } else if (!password.matches(".*[A-Z].*")) {
+                etLoginPassword.setError("Password must contain at least one uppercase letter");
+            } else if (!password.matches(".*[a-z].*")) {
+                etLoginPassword.setError("Password must contain at least one lowercase letter");
+            } else if (!password.matches(".*[0-9].*")) {
+                etLoginPassword.setError("Password must contain at least one number");
+            } else if (!password.matches(".*[@#$%&!+=].*")) {
+                etLoginPassword.setError("Please enter at least one special symbol");
             } else {
+                // Perform the actual database check AFTER validation passes
                 if (dbHelper.checkLogin(username, password)) {
                     Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show();
                     editor.putBoolean("isLogin", true);
