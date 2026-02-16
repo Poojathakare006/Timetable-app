@@ -15,7 +15,7 @@ import java.util.ArrayList;
 public class DBHelper extends SQLiteOpenHelper {
 
     public static final String DBNAME = "UserDB.db";
-    public static final int DB_VERSION = 9; // Incremented for new user fields
+    public static final int DB_VERSION = 9; 
 
     public static final String TABLE_USERS = "users";
     public static final String TABLE_TIMETABLE = "timetable";
@@ -40,7 +40,6 @@ public class DBHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // --- USER METHODS ---
     public boolean insertUser(String name, String email, String mobile, String username, String password, String userType, String course, String year, String collegeName) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -89,7 +88,6 @@ public class DBHelper extends SQLiteOpenHelper {
         db.delete(TABLE_USERS, "username = ?", new String[]{username});
     }
 
-    // Rest of the DBHelper methods...
     public boolean addTimetableEntry(CourseModel course) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -129,6 +127,11 @@ public class DBHelper extends SQLiteOpenHelper {
         return timetable;
     }
     
+    public void clearTimetableData() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_TIMETABLE, null, null);
+    }
+    
     public int getTimetableCount() {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT COUNT(DISTINCT course_name) FROM " + TABLE_TIMETABLE, null);
@@ -149,6 +152,28 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return course;
+    }
+    
+    public int getLecturesForTeacherToday(String teacherName, String day) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_TIMETABLE + " WHERE teacher_name = ? AND day = ?", new String[]{teacherName, day});
+        int count = 0;
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0);
+        }
+        cursor.close();
+        return count;
+    }
+
+    public int getLecturesForTeacherThisWeek(String teacherName) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_TIMETABLE + " WHERE teacher_name = ?", new String[]{teacherName});
+        int count = 0;
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0);
+        }
+        cursor.close();
+        return count;
     }
 
     public boolean addTimetableHistory(TimetableHistory history) {

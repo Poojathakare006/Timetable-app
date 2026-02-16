@@ -55,6 +55,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TimetableFragment extends Fragment {
 
@@ -106,21 +108,6 @@ public class TimetableFragment extends Fragment {
         }
     }
 
-    private String getAbbreviation(String name, int threshold) {
-        if (name == null || name.isEmpty()) return "";
-        if (name.length() <= threshold && !name.contains(" ")) {
-            return name;
-        }
-
-        StringBuilder abbreviation = new StringBuilder();
-        for (String word : name.split("\\s+")) {
-            if (!word.isEmpty()) {
-                abbreviation.append(Character.toUpperCase(word.charAt(0)));
-            }
-        }
-        return abbreviation.toString();
-    }
-
     private void loadTimetable() {
         if (getContext() == null) return;
 
@@ -137,37 +124,18 @@ public class TimetableFragment extends Fragment {
 
         tvCourseNameHeader.setText(timetableList.get(0).getCourseName());
 
-        SharedPreferences preferences = getContext().getSharedPreferences("user_details", Context.MODE_PRIVATE);
-        int theme = preferences.getInt("timetable_theme", 0);
-        int[] colorArray = getColorArray(theme);
-
-        Map<String, Integer> subjectColorMap = new HashMap<>();
-        int colorIndex = 0;
-
         Map<String, Map<String, CourseModel>> groupedByTime = new LinkedHashMap<>();
         for (CourseModel course : timetableList) {
             groupedByTime.computeIfAbsent(course.getTimeslot(), k -> new LinkedHashMap<>());
             groupedByTime.get(course.getTimeslot()).put(course.getDay().toUpperCase(), course);
-
-            if (!subjectColorMap.containsKey(course.getSubjectName())) {
-                subjectColorMap.put(course.getSubjectName(), colorArray[colorIndex % colorArray.length]);
-                colorIndex++;
-            }
         }
 
         List<String> sortedTimeslots = new ArrayList<>(groupedByTime.keySet());
-        Collections.sort(sortedTimeslots, (ts1, ts2) -> {
-            try {
-                int startTime1 = Integer.parseInt(ts1.split(" to ")[0].split(" to ")[0].replaceAll("[^0-9]", ""));
-                int startTime2 = Integer.parseInt(ts2.split(" to ")[0].split(" to ")[0].replaceAll("[^0-9]", ""));
-                return Integer.compare(startTime1, startTime2);
-            } catch (Exception e) {
-                return ts1.compareTo(ts2); // Fallback to alphabetical sort on error
-            }
-        });
 
         Map<String, String> subjectLegendMap = new LinkedHashMap<>();
         Map<String, String> teacherLegendMap = new LinkedHashMap<>();
+        int[] colorArray = getColorArray();
+        Map<String, Integer> subjectColorMap = getSubjectColorMap(timetableList, colorArray);
 
         for (String timeslot : sortedTimeslots) {
             TableRow row = new TableRow(getContext());
@@ -180,16 +148,20 @@ public class TimetableFragment extends Fragment {
                 CourseModel course = coursesForTime.get(day);
                 TextView classCell;
                 if (course != null) {
-                    String subjectAbbr = getAbbreviation(course.getSubjectName(), 10);
-                    String teacherAbbr = getAbbreviation(course.getTeacherName(), 12);
+                     if ("Recess".equalsIgnoreCase(course.getSubjectName())) {
+                        classCell = createStyledTextView("Recess", R.style.classCell, Color.parseColor("#E0E0E0"));
+                    } else {
+                        String subjectAbbr = getAbbreviation(course.getSubjectName(), 10);
+                        String teacherAbbr = getAbbreviation(course.getTeacherName(), 12);
 
-                    if (!subjectAbbr.equals(course.getSubjectName())) subjectLegendMap.put(subjectAbbr, course.getSubjectName());
-                    if (!teacherAbbr.equals(course.getTeacherName())) teacherLegendMap.put(teacherAbbr, course.getTeacherName());
+                        if (!subjectAbbr.equals(course.getSubjectName())) subjectLegendMap.put(subjectAbbr, course.getSubjectName());
+                        if (!teacherAbbr.equals(course.getTeacherName())) teacherLegendMap.put(teacherAbbr, course.getTeacherName());
 
-                    String cellText = subjectAbbr + "\n" + teacherAbbr;
-                    int cellColor = subjectColorMap.get(course.getSubjectName());
-                    classCell = createStyledTextView(cellText, R.style.classCell, cellColor);
-                    classCell.setOnClickListener(v -> showEditDialog(course));
+                        String cellText = subjectAbbr + "\n" + teacherAbbr;
+                        int cellColor = subjectColorMap.get(course.getSubjectName());
+                        classCell = createStyledTextView(cellText, R.style.classCell, cellColor);
+                        classCell.setOnClickListener(v -> showEditDialog(course));
+                    }
                 } else {
                     classCell = createStyledTextView("", R.style.classCell, Color.WHITE);
                 }
@@ -212,6 +184,56 @@ public class TimetableFragment extends Fragment {
             }
             tvLegend.setText(legendBuilder);
         }
+    }
+
+    private int[] getColorArray() {
+        SharedPreferences preferences = getContext().getSharedPreferences("user_details", Context.MODE_PRIVATE);
+        int theme = preferences.getInt("timetable_theme", 0);
+        int arrayId;
+        switch (theme) {
+            case 1: arrayId = R.array.vibrant_colors; break;
+            case 2: arrayId = R.array.pastel_colors; break;
+            case 3: arrayId = R.array.corporate_blue_colors; break;
+            case 4: arrayId = R.array.autumn_harvest_colors; break;
+            case 5: arrayId = R.array.sunrise_colors; break;
+            case 6: arrayId = R.array.emerald_colors; break;
+            case 7: arrayId = R.array.lavender_bliss_colors; break;
+            case 8: arrayId = R.array.minty_fresh_colors; break;
+            default: return new int[]{ContextCompat.getColor(getContext(), R.color.lightred)};
+        }
+        TypedArray ta = getResources().obtainTypedArray(arrayId);
+        int[] colors = new int[ta.length()];
+        for (int i = 0; i < ta.length(); i++) {
+            colors[i] = ta.getColor(i, 0);
+        }
+        ta.recycle();
+        return colors;
+    }
+
+    private Map<String, Integer> getSubjectColorMap(ArrayList<CourseModel> timetableList, int[] colorArray) {
+        Map<String, Integer> subjectColorMap = new HashMap<>();
+        int colorIndex = 0;
+        for (CourseModel course : timetableList) {
+            if (!"Recess".equalsIgnoreCase(course.getSubjectName()) && !subjectColorMap.containsKey(course.getSubjectName())) {
+                subjectColorMap.put(course.getSubjectName(), colorArray[colorIndex % colorArray.length]);
+                colorIndex++;
+            }
+        }
+        return subjectColorMap;
+    }
+
+    private String getAbbreviation(String name, int threshold) {
+        if (name == null || name.isEmpty()) return "";
+        if (name.length() <= threshold && !name.contains(" ")) {
+            return name;
+        }
+        StringBuilder abbreviation = new StringBuilder();
+        for (String word : name.split("\\s+")) {
+            if (!word.isEmpty()) {
+                abbreviation.append(Character.toUpperCase(word.charAt(0)));
+            }
+        }
+        return abbreviation.toString();
     }
 
     private void addLegendSection(SpannableStringBuilder builder, String title, Map<String, String> items) {
@@ -243,50 +265,23 @@ public class TimetableFragment extends Fragment {
         return textView;
     }
 
-    private int[] getColorArray(int theme) {
-        int arrayId;
-        switch (theme) {
-            case 1: arrayId = R.array.vibrant_colors; break;
-            case 2: arrayId = R.array.pastel_colors; break;
-            case 3: arrayId = R.array.corporate_blue_colors; break;
-            case 4: arrayId = R.array.autumn_harvest_colors; break;
-            case 5: arrayId = R.array.sunrise_colors; break;
-            case 6: arrayId = R.array.emerald_colors; break;
-            case 7: arrayId = R.array.lavender_bliss_colors; break;
-            case 8: arrayId = R.array.minty_fresh_colors; break;
-            default: return new int[]{ContextCompat.getColor(getContext(), R.color.lightred)};
-        }
-
-        TypedArray ta = getContext().getResources().obtainTypedArray(arrayId);
-        int[] colors = new int[ta.length()];
-        for (int i = 0; i < ta.length(); i++) {
-            colors[i] = ta.getColor(i, 0);
-        }
-        ta.recycle();
-        return colors;
-    }
-
     private int dpToPx(int dp) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getResources().getDisplayMetrics());
     }
-    
+
     private void showEditDialog(CourseModel course) {
         if (getContext() == null) return;
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Edit Entry");
-
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_edit_timetable, null);
         final EditText inputSubject = dialogView.findViewById(R.id.etEditSubject);
         final EditText inputTeacher = dialogView.findViewById(R.id.etEditTeacher);
         builder.setView(dialogView);
-
         inputSubject.setText(course.getSubjectName());
         inputTeacher.setText(course.getTeacherName());
-
         builder.setPositiveButton("Save", (dialog, which) -> {
             String newSubject = inputSubject.getText().toString().trim();
             String newTeacher = inputTeacher.getText().toString().trim();
-
             if (!newSubject.isEmpty() && !newTeacher.isEmpty()) {
                 course.setSubjectName(newSubject);
                 course.setTeacherName(newTeacher);
@@ -297,7 +292,6 @@ public class TimetableFragment extends Fragment {
                 Toast.makeText(getContext(), "Fields cannot be empty", Toast.LENGTH_SHORT).show();
             }
         });
-
         builder.setNegativeButton("Cancel", null);
         builder.show();
     }
@@ -325,25 +319,8 @@ public class TimetableFragment extends Fragment {
             document.add(new Paragraph(courseName).setBold().setFontSize(20));
 
             SharedPreferences preferences = getContext().getSharedPreferences("user_details", Context.MODE_PRIVATE);
-            int theme = preferences.getInt("timetable_theme", 0);
-            int[] colorArray = getColorArray(theme);
-            Map<String, Integer> subjectColorMap = new HashMap<>();
-            int colorIndex = 0;
-            for (CourseModel course : timetableList) {
-                if (!subjectColorMap.containsKey(course.getSubjectName())) {
-                    subjectColorMap.put(course.getSubjectName(), colorArray[colorIndex % colorArray.length]);
-                    colorIndex++;
-                }
-            }
-
-            float[] columnWidths = {2f, 3f, 3f, 3f, 3f, 3f, 3f};
-            Table table = new Table(UnitValue.createPercentArray(columnWidths));
-
-            DeviceRgb headerColor = new DeviceRgb(216, 181, 181);
-            List<String> pdfDaysOrder = Arrays.asList("TIME", "MON", "TUE", "WED", "THU", "FRI", "SAT");
-            for (String day : pdfDaysOrder) {
-                table.addHeaderCell(new Cell().add(new Paragraph(day)).setBackgroundColor(headerColor));
-            }
+            int orientation = preferences.getInt("timetable_orientation", 0);
+            Map<String, Integer> subjectColorMap = getSubjectColorMap(timetableList, getColorArray());
 
             Map<String, Map<String, CourseModel>> groupedByTime = new LinkedHashMap<>();
             for (CourseModel course : timetableList) {
@@ -352,39 +329,26 @@ public class TimetableFragment extends Fragment {
             }
 
             List<String> sortedTimeslots = new ArrayList<>(groupedByTime.keySet());
-             Collections.sort(sortedTimeslots, (ts1, ts2) -> {
-                try {
-                    int startTime1 = Integer.parseInt(ts1.split(" to ")[0].split(" to ")[0].replaceAll("[^0-9]", ""));
-                    int startTime2 = Integer.parseInt(ts2.split(" to ")[0].split(" to ")[0].replaceAll("[^0-9]", ""));
-                    return Integer.compare(startTime1, startTime2);
+            Collections.sort(sortedTimeslots, (ts1, ts2) -> {
+                 try {
+                    Pattern p = Pattern.compile("^(\\d+)");
+                    Matcher m1 = p.matcher(ts1);
+                    Matcher m2 = p.matcher(ts2);
+                    if (m1.find() && m2.find()) {
+                        return Integer.parseInt(m1.group(1)) - Integer.parseInt(m2.group(1));
+                    }
+                    return ts1.compareTo(ts2);
                 } catch (Exception e) {
                     return ts1.compareTo(ts2);
                 }
             });
 
-            for (String timeslot : sortedTimeslots) {
-                Cell timeCell = new Cell().add(new Paragraph(timeslot));
-                timeCell.setBackgroundColor(new DeviceRgb(230, 207, 207));
-                table.addCell(timeCell);
-
-                Map<String, CourseModel> coursesForTime = groupedByTime.get(timeslot);
-                for (String day : daysOrder) {
-                    CourseModel course = coursesForTime.get(day);
-                    Cell classCell;
-                    if (course != null) {
-                        classCell = new Cell().add(new Paragraph(course.getSubjectName() + "\n" + course.getTeacherName()));
-                        int androidColor = subjectColorMap.get(course.getSubjectName());
-                        DeviceRgb cellColor = new DeviceRgb(Color.red(androidColor), Color.green(androidColor), Color.blue(androidColor));
-                        classCell.setBackgroundColor(cellColor);
-                    } else {
-                        classCell = new Cell().add(new Paragraph(""));
-                        classCell.setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.WHITE);
-                    }
-                    table.addCell(classCell);
-                }
+            if (orientation == 1) { // Horizontal
+                drawHorizontalPdf(document, subjectColorMap, groupedByTime, sortedTimeslots);
+            } else { // Classic
+                drawClassicPdf(document, subjectColorMap, groupedByTime, sortedTimeslots);
             }
 
-            document.add(table);
             document.close();
 
             TimetableHistory history = new TimetableHistory(0, courseName, pdfFile.getAbsolutePath(), System.currentTimeMillis());
@@ -398,6 +362,79 @@ public class TimetableFragment extends Fragment {
         }
     }
 
+    private void drawClassicPdf(Document document, Map<String, Integer> subjectColorMap, Map<String, Map<String, CourseModel>> groupedByTime, List<String> sortedTimeslots) {
+        float[] columnWidths = {2f, 3f, 3f, 3f, 3f, 3f, 3f};
+        Table table = new Table(UnitValue.createPercentArray(columnWidths));
+
+        DeviceRgb headerColor = new DeviceRgb(216, 181, 181);
+        table.addHeaderCell(new Cell().add(new Paragraph("TIME")).setBackgroundColor(headerColor));
+        for (String day : daysOrder) {
+            table.addHeaderCell(new Cell().add(new Paragraph(day)).setBackgroundColor(headerColor));
+        }
+
+        for (String timeslot : sortedTimeslots) {
+            table.addCell(new Cell().add(new Paragraph(timeslot)).setBackgroundColor(new DeviceRgb(230, 207, 207)));
+            Map<String, CourseModel> coursesForTime = groupedByTime.get(timeslot);
+            for (String day : daysOrder) {
+                CourseModel course = coursesForTime.get(day);
+                Cell classCell;
+                if (course != null) {
+                     if ("Recess".equalsIgnoreCase(course.getSubjectName())) {
+                        classCell = new Cell().add(new Paragraph("Recess"));
+                        classCell.setBackgroundColor(new DeviceRgb(224, 224, 224));
+                    } else {
+                        classCell = new Cell().add(new Paragraph(course.getSubjectName() + "\n" + course.getTeacherName()));
+                        int androidColor = subjectColorMap.get(course.getSubjectName());
+                        DeviceRgb cellColor = new DeviceRgb(Color.red(androidColor), Color.green(androidColor), Color.blue(androidColor));
+                        classCell.setBackgroundColor(cellColor);
+                    }
+                } else {
+                    classCell = new Cell().add(new Paragraph(""));
+                    classCell.setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.WHITE);
+                }
+                table.addCell(classCell);
+            }
+        }
+        document.add(table);
+    }
+    
+    private void drawHorizontalPdf(Document document, Map<String, Integer> subjectColorMap, Map<String, Map<String, CourseModel>> groupedByTime, List<String> sortedTimeslots) {
+        float[] columnWidths = new float[sortedTimeslots.size() + 1];
+        Arrays.fill(columnWidths, 3f);
+        columnWidths[0] = 2f;
+        Table table = new Table(UnitValue.createPercentArray(columnWidths));
+
+        DeviceRgb headerColor = new DeviceRgb(216, 181, 181);
+        table.addHeaderCell(new Cell().add(new Paragraph("DAY")).setBackgroundColor(headerColor));
+        for (String timeslot : sortedTimeslots) {
+            table.addHeaderCell(new Cell().add(new Paragraph(timeslot)).setBackgroundColor(headerColor));
+        }
+
+        for (String day : daysOrder) {
+            table.addCell(new Cell().add(new Paragraph(day)).setBackgroundColor(new DeviceRgb(230, 207, 207)));
+            for (String timeslot : sortedTimeslots) {
+                CourseModel course = groupedByTime.get(timeslot) != null ? groupedByTime.get(timeslot).get(day) : null;
+                Cell classCell;
+                if (course != null) {
+                     if ("Recess".equalsIgnoreCase(course.getSubjectName())) {
+                        classCell = new Cell().add(new Paragraph("Recess"));
+                        classCell.setBackgroundColor(new DeviceRgb(224, 224, 224));
+                    } else {
+                        classCell = new Cell().add(new Paragraph(course.getSubjectName() + "\n" + course.getTeacherName()));
+                        int androidColor = subjectColorMap.get(course.getSubjectName());
+                        DeviceRgb cellColor = new DeviceRgb(Color.red(androidColor), Color.green(androidColor), Color.blue(androidColor));
+                        classCell.setBackgroundColor(cellColor);
+                    }
+                } else {
+                    classCell = new Cell().add(new Paragraph(""));
+                    classCell.setBackgroundColor(com.itextpdf.kernel.colors.ColorConstants.WHITE);
+                }
+                table.addCell(classCell);
+            }
+        }
+        document.add(table);
+    }
+
     private File createPdfFile(String courseName) {
         String fileName = courseName.replaceAll("[^a-zA-Z0-9]", "") + "_" + System.currentTimeMillis() + ".pdf";
         File pdfPath = getContext().getExternalFilesDir("pdfs");
@@ -408,12 +445,10 @@ public class TimetableFragment extends Fragment {
 
     private void sharePdf(File file) {
         Uri fileUri = FileProvider.getUriForFile(getContext(), getContext().getApplicationContext().getPackageName() + ".provider", file);
-
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("application/pdf");
         shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
         shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
         try {
             startActivity(Intent.createChooser(shareIntent, "Share Timetable PDF"));
         } catch (ActivityNotFoundException e) {

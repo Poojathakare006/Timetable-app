@@ -5,4 +5,4 @@
     android:gravity="center"
     android:padding="10dp"
     android:textColor="@android:color/black"
-    android:background="@drawable/class_cell_bg" />
+    android:background="@color/lightred" />

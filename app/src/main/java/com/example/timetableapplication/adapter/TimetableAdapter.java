@@ -69,7 +69,6 @@ public class TimetableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         int viewType = getItemViewType(position);
         switch (viewType) {
             case TYPE_HEADER:
-                // You can set header text if needed, e.g., ((HeaderViewHolder) holder).header.setText(...);
                 break;
             case TYPE_TIME:
                 ((TimeViewHolder) holder).time.setText((String) items.get(position));
@@ -77,10 +76,8 @@ public class TimetableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             case TYPE_CELL:
                 CourseModel course = (CourseModel) items.get(position);
                 ((CellViewHolder) holder).subject.setText(course.getSubjectName());
-                // You might want to add teacher name, etc. as well
                 break;
             case TYPE_EMPTY:
-                // No data to bind for empty cells
                 break;
         }
     }
@@ -90,7 +87,6 @@ public class TimetableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         return items.size();
     }
 
-    // ViewHolder for Header
     public static class HeaderViewHolder extends RecyclerView.ViewHolder {
         TextView header;
         public HeaderViewHolder(@NonNull View itemView) {
@@ -99,7 +95,6 @@ public class TimetableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         }
     }
 
-    // ViewHolder for Time Slot
     public static class TimeViewHolder extends RecyclerView.ViewHolder {
         TextView time;
         public TimeViewHolder(@NonNull View itemView) {
@@ -108,7 +103,6 @@ public class TimetableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         }
     }
 
-    // ViewHolder for Class Cell
     public static class CellViewHolder extends RecyclerView.ViewHolder {
         TextView subject;
         public CellViewHolder(@NonNull View itemView) {
@@ -117,7 +111,6 @@ public class TimetableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         }
     }
 
-    // ViewHolder for Empty Cell
     public static class EmptyViewHolder extends RecyclerView.ViewHolder {
         public EmptyViewHolder(@NonNull View itemView) {
             super(itemView);

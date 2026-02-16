@@ -74,18 +74,38 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             app:cardCornerRadius="12dp">
-
-            <TextView
-                android:id="@+id/setting_color_scheme"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:drawablePadding="16dp"
-                android:padding="16dp"
-                android:text="Timetable Color Scheme"
-                app:drawableStartCompat="@drawable/ic_color_palette" />
+                android:orientation="vertical">
 
+                <TextView
+                    android:id="@+id/setting_color_scheme"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:drawablePadding="16dp"
+                    android:padding="16dp"
+                    android:text="Timetable Color Scheme"
+                    app:drawableStartCompat="@drawable/ic_color_palette" />
+                
+                 <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#E0E0E0" />
+
+                <TextView
+                    android:id="@+id/setting_timetable_orientation"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:drawablePadding="16dp"
+                    android:padding="16dp"
+                    android:text="Timetable Orientation" />
+
+            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Notification Section -->

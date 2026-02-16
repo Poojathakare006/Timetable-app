@@ -1,34 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
+    android:background="@color/pink"
+    tools:context=".Fragments.HomeFragment">
 
-    <LinearLayout
+    <!-- Container for the dashboards at the bottom -->
+    <FrameLayout
+        android:id="@+id/dashboard_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        tools:context=".Fragments.HomeFragment">
+        android:layout_alignParentBottom="true">
 
-
-        <com.denzcoskun.imageslider.ImageSlider
-            android:id="@+id/imageSlider"
-            android:layout_width="match_parent"
-            android:layout_height="350dp"
-            app:iss_selected_dot="@color/red"
-            app:iss_text_color="#000000"
-            app:iss_unselected_dot="@color/black" />
-
+        <!-- Student Dashboard -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/student_info_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="10dp"
-            android:layout_marginTop="40dp"
-            android:padding="10sp"
-            android:backgroundTint="@color/pink"
-            app:cardCornerRadius="8dp">
+            android:layout_margin="16dp"
+            app:cardBackgroundColor="#E6F4D1D1"
+            app:cardCornerRadius="12dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -46,28 +39,23 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-medium"
                         android:text="Today :"
-                        android:textSize="25sp"
+                        android:textSize="22sp"
                         android:textStyle="bold" />
 
-
                     <TextView
-                        android:id="@+id/tvMonday"
+                        android:id="@+id/tvTodayDay"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="end"
                         android:text="Monday"
-                        android:textSize="25sp"
-                        android:textStyle="bold" />
-
-
+                        android:textSize="22sp" />
                 </LinearLayout>
-
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="12dp"
                     android:orientation="horizontal">
 
                     <TextView
@@ -75,53 +63,123 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-medium"
                         android:text="Next Class :"
-                        android:textSize="25sp"
+                        android:textSize="22sp"
                         android:textStyle="bold" />
 
                     <TextView
-                        android:id="@+id/ivNoClassesScheduled"
+                        android:id="@+id/tvNextClass"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="end"
                         android:text="No Classes Scheduled"
-                        android:textSize="25sp"
-                        android:textStyle="bold" />
-
+                        android:textSize="22sp" />
                 </LinearLayout>
-
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="12dp"
                     android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-medium"
-                        android:text="Timetables created :"
-                        android:textSize="25sp"
+                        android:text="Timetables Created :"
+                        android:textSize="22sp"
                         android:textStyle="bold" />
 
-
                     <TextView
-                        android:id="@+id/tvZero"
+                        android:id="@+id/tvTimetableCount"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="end"
                         android:text="0"
-                        android:textSize="25sp"
-                        android:textStyle="bold" />
-
+                        android:textSize="22sp" />
                 </LinearLayout>
-
             </LinearLayout>
-
         </androidx.cardview.widget.CardView>
 
-    </LinearLayout>
+        <!-- Teacher Dashboard (Hidden by default) -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/teacher_info_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="#E6D1F4"
+            app:cardCornerRadius="12dp">
 
-</ScrollView>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Today's Lectures :"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvTodayLectures"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:text="0"
+                        android:textSize="22sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Week's Lectures :"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvWeekLectures"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:text="0"
+                        android:textSize="22sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </FrameLayout>
+
+    <com.denzcoskun.imageslider.ImageSlider
+        android:id="@+id/imageSlider"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_alignParentTop="true"
+        android:layout_above="@id/dashboard_container"
+        android:layout_margin="16dp"
+        app:iss_auto_cycle="true"
+        app:iss_corner_radius="20"
+        app:iss_delay="1000"
+        app:iss_period="2000"
+        app:iss_selected_dot="@color/darkred" />
+
+</RelativeLayout>

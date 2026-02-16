@@ -32,7 +32,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
-            android:text="Share as PDF" />
+            android:text="Share as PDF"
+            app:backgroundTint="@color/darkred" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_add_timetable"
@@ -48,7 +49,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/bottom_actions"
-        android:layout_below="@id/tvCourseNameHeader">
+        android:layout_below="@+id/tvCourseNameHeader">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -63,7 +64,7 @@
                 <TableLayout
                     android:id="@+id/tableTimetable"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content" 
                     android:padding="8dp">
 
                     <TableRow android:id="@+id/header_row">

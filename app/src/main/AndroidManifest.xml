@@ -41,7 +41,7 @@
         <activity
             android:name=".HomeActivity"
             android:exported="false"
-            android:theme="@style/HomeActivity" />
+            android:theme="@style/Theme.HomeActivity" />
         <activity
             android:name=".RegistrationActivity"
             android:exported="false" />
@@ -55,7 +55,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".LoginActivity"
+            android:name="LoginActivity"
             android:exported="true" />
     </application>
 

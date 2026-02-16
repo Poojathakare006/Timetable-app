@@ -1,6 +1,7 @@
 package com.example.timetableapplication;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -28,7 +29,7 @@ import java.util.List;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    TextView tvEditProfile, tvChangePassword, tvClearHistory, tvDeleteAccount, tvColorScheme;
+    TextView tvEditProfile, tvChangePassword, tvClearHistory, tvDeleteAccount, tvColorScheme, tvTimetableOrientation;
     Button btnLogout;
     SwitchCompat notificationSwitch;
     DBHelper dbHelper;
@@ -50,6 +51,7 @@ public class SettingsActivity extends AppCompatActivity {
         btnLogout = findViewById(R.id.setting_logout);
         notificationSwitch = findViewById(R.id.setting_notifications);
         tvColorScheme = findViewById(R.id.setting_color_scheme);
+        tvTimetableOrientation = findViewById(R.id.setting_timetable_orientation);
 
         notificationSwitch.setChecked(preferences.getBoolean("notifications_enabled", false));
 
@@ -59,6 +61,23 @@ public class SettingsActivity extends AppCompatActivity {
         tvDeleteAccount.setOnClickListener(v -> showDeleteAccountDialog());
         tvClearHistory.setOnClickListener(v -> showClearHistoryDialog());
         tvColorScheme.setOnClickListener(v -> showColorSchemeDialog());
+        tvTimetableOrientation.setOnClickListener(v -> showOrientationDialog());
+    }
+
+    private void showOrientationDialog() {
+        final String[] orientations = {"Classic (Time on side)", "Horizontal (Days on side)"};
+        int currentOrientation = preferences.getInt("timetable_orientation", 0);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Choose Timetable Orientation")
+                .setSingleChoiceItems(orientations, currentOrientation, null)
+                .setPositiveButton("OK", (dialog, which) -> {
+                    int selectedPosition = ((AlertDialog) dialog).getListView().getCheckedItemPosition();
+                    preferences.edit().putInt("timetable_orientation", selectedPosition).apply();
+                    Toast.makeText(this, orientations[selectedPosition] + " selected", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void showColorSchemeDialog() {
@@ -89,7 +108,6 @@ public class SettingsActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    // Custom Adapter for Color Scheme Dialog
     private class ColorSchemeAdapter extends ArrayAdapter<String> {
         private final List<String> themeNames;
         private int selectedIndex;
@@ -102,7 +120,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         public void setSelectedIndex(int index) {
             this.selectedIndex = index;
-            notifyDataSetChanged(); // This will redraw the entire list
+            notifyDataSetChanged();
         }
 
         @NonNull
@@ -131,7 +149,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
-    // ... (other dialog methods for logout, password, etc. remain here) ...
+    // ... other dialog methods ...
     private void showLogoutDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Logout")
