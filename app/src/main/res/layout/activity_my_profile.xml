@@ -36,6 +36,12 @@
             android:layout_height="120dp"
             android:src="@drawable/ic_default_profile"
             android:background="@drawable/profile_image_background"/>
+        
+        <Button
+            android:id="@+id/btn_change_photo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Change Photo"/>
 
         <TextView
             android:id="@+id/tv_profile_name"
@@ -84,7 +90,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:visibility="gone"> <!-- Hidden by default -->
+                    android:visibility="gone"> 
 
                     <View
                         android:layout_width="match_parent"

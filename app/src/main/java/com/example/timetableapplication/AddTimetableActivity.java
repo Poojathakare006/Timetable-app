@@ -14,19 +14,16 @@ import com.example.timetableapplication.ModelClass.CourseModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 public class AddTimetableActivity extends AppCompatActivity {
 
     // UI Elements
-    Button btnAddTeacher, btnAddSubject, btnGenerateTimetable, btnAddRecess, btnSetTeacherAvailability;
+    Button btnAddTeacher, btnAddSubject, btnGenerateTimetable, btnAddRecess, btnAddClasses;
     Button btnAddTimeSlot, btnAddDay;
     SwitchCompat toggleOverlap, toggleClash, toggleWorkload;
     EditText etCourseName;
-    TextView tvTeachersAdded, tvSubjectsAdded;
+    TextView tvTeachersAdded, tvSubjectsAdded, etClassesAdd;
 
     // Data Lists
     private ArrayList<String> teachers = new ArrayList<>();
@@ -34,7 +31,7 @@ public class AddTimetableActivity extends AppCompatActivity {
     private ArrayList<String> timeslots = new ArrayList<>();
     private ArrayList<String> days = new ArrayList<>();
     private ArrayList<String> recessSlots = new ArrayList<>();
-    private Map<String, List<String>> teacherAvailability = new HashMap<>();
+    private ArrayList<String> classes = new ArrayList<>();
     DBHelper dbHelper;
 
     @Override
@@ -44,26 +41,31 @@ public class AddTimetableActivity extends AppCompatActivity {
 
         dbHelper = new DBHelper(this);
 
+        // Initialize UI Elements
         etCourseName = findViewById(R.id.etCourseName);
         btnAddTeacher = findViewById(R.id.btnTimetableAddTeacher);
         btnAddSubject = findViewById(R.id.btnTimetableAddSubject);
         btnAddTimeSlot = findViewById(R.id.btnAddTimeSlot);
         btnAddDay = findViewById(R.id.btnAddDay);
         btnAddRecess = findViewById(R.id.btnAddRecess);
+        btnAddClasses = findViewById(R.id.btnAddClasses);
         btnGenerateTimetable = findViewById(R.id.btnGenerateTimetable);
-        btnSetTeacherAvailability = findViewById(R.id.btnSetTeacherAvailability);
         toggleOverlap = findViewById(R.id.toggleOverlap);
         toggleClash = findViewById(R.id.toggleClash);
         toggleWorkload = findViewById(R.id.toggleWorkload);
+
         tvTeachersAdded = findViewById(R.id.etTimetableTeachersAdded0);
         tvSubjectsAdded = findViewById(R.id.etSubAdd);
+        etClassesAdd = findViewById(R.id.etClassesAdd);
 
+        // Set Click Listeners
         btnAddTeacher.setOnClickListener(v -> showAddDialog("Teacher Name", teachers, tvTeachersAdded));
         btnAddSubject.setOnClickListener(v -> showAddDialog("Subject Name", subjects, tvSubjectsAdded));
         btnAddTimeSlot.setOnClickListener(v -> showAddDialog("Time Slot (e.g., 9:00-10:00)", timeslots, null));
         btnAddDay.setOnClickListener(v -> showDaySelectionDialog());
         btnAddRecess.setOnClickListener(v -> showRecessSelectionDialog());
-        btnSetTeacherAvailability.setOnClickListener(v -> showTeacherSelectionDialog());
+        btnAddClasses.setOnClickListener(v -> showAddDialog("Class Name", classes, etClassesAdd));
+
         btnGenerateTimetable.setOnClickListener(v -> generateTimetable());
     }
 
@@ -105,7 +107,7 @@ public class AddTimetableActivity extends AppCompatActivity {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Select Days");
-        builder.setMultiChoiceItems(dayOptions, checkedItems, (dialog, which, isChecked) -> checkedItems[which] = isChecked);
+        builder.setMultiChoiceItems(dayOptions, checkedItems, (dialog, which, isChecked) -> {});
 
         builder.setPositiveButton("OK", (dialog, which) -> {
             days.clear();
@@ -137,7 +139,7 @@ public class AddTimetableActivity extends AppCompatActivity {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Select Recess Time Slots");
-        builder.setMultiChoiceItems(timeSlotOptions, checkedItems, (dialog, which, isChecked) -> checkedItems[which] = isChecked);
+        builder.setMultiChoiceItems(timeSlotOptions, checkedItems, (dialog, which, isChecked) -> {});
 
         builder.setPositiveButton("OK", (dialog, which) -> {
             recessSlots.clear();
@@ -150,55 +152,6 @@ public class AddTimetableActivity extends AppCompatActivity {
         });
         builder.setNegativeButton("Cancel", null);
         builder.create().show();
-    }
-
-    private void showTeacherSelectionDialog() {
-        if (teachers.isEmpty()) {
-            Toast.makeText(this, "Please add teachers first", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        final String[] teacherOptions = teachers.toArray(new String[0]);
-
-        new AlertDialog.Builder(this)
-                .setTitle("Select Teacher for Availability")
-                .setItems(teacherOptions, (dialog, which) -> {
-                    showAvailabilityDialog(teacherOptions[which]);
-                })
-                .show();
-    }
-
-    private void showAvailabilityDialog(final String teacherName) {
-        if (timeslots.isEmpty()) {
-            Toast.makeText(this, "Please add time slots first", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        final String[] timeSlotOptions = timeslots.toArray(new String[0]);
-        final boolean[] checkedItems = new boolean[timeSlotOptions.length];
-        final List<String> unavailableSlots = teacherAvailability.getOrDefault(teacherName, new ArrayList<>());
-
-        for (int i = 0; i < timeSlotOptions.length; i++) {
-            if (unavailableSlots.contains(timeSlotOptions[i])) {
-                checkedItems[i] = true;
-            }
-        }
-
-        new AlertDialog.Builder(this)
-                .setTitle("Set Unavailable Times for " + teacherName)
-                .setMultiChoiceItems(timeSlotOptions, checkedItems, (dialog, which, isChecked) -> checkedItems[which] = isChecked)
-                .setPositiveButton("Save", (dialog, which) -> {
-                    List<String> newUnavailableSlots = new ArrayList<>();
-                    for (int i = 0; i < timeSlotOptions.length; i++) {
-                        if (checkedItems[i]) {
-                            newUnavailableSlots.add(timeSlotOptions[i]);
-                        }
-                    }
-                    teacherAvailability.put(teacherName, newUnavailableSlots);
-                    Toast.makeText(this, "Availability for " + teacherName + " updated", Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
     }
 
 
@@ -215,33 +168,18 @@ public class AddTimetableActivity extends AppCompatActivity {
         for (String day : days) {
             Collections.shuffle(teachers);
             Collections.shuffle(subjects);
+            Iterator<String> teacherIt = teachers.iterator();
+            Iterator<String> subjectIt = subjects.iterator();
 
             for (String timeslot : timeslots) {
                 if (recessSlots.contains(timeslot)) {
-                    CourseModel course = new CourseModel(0, courseName, "", "Recess", "", timeslot, day);
+                    CourseModel course = new CourseModel(0, courseName, "", "Recess", "", timeslot, day, null);
                     dbHelper.addTimetableEntry(course);
-                    continue; 
-                }
+                } else {
+                    if (!teacherIt.hasNext()) teacherIt = teachers.iterator();
+                    if (!subjectIt.hasNext()) subjectIt = subjects.iterator();
 
-                boolean assigned = false;
-                for (int i = 0; i < teachers.size(); i++) {
-                    String teacher = teachers.get(i);
-                    List<String> unavailable = teacherAvailability.get(teacher);
-                    if (unavailable != null && unavailable.contains(timeslot)) {
-                        continue; 
-                    }
-
-                    String subject = subjects.get(i % subjects.size());
-
-                    CourseModel course = new CourseModel(0, courseName, teacher, subject, "Default Class", timeslot, day);
-                    dbHelper.addTimetableEntry(course);
-                    assigned = true;
-                    break; 
-                }
-
-                if (!assigned) {
-                    // Handle case where no available teacher was found for a slot
-                    CourseModel course = new CourseModel(0, courseName, "Unassigned", "Unassigned", "Default Class", timeslot, day);
+                    CourseModel course = new CourseModel(0, courseName, teacherIt.next(), subjectIt.next(), "Default Class", timeslot, day, null);
                     dbHelper.addTimetableEntry(course);
                 }
             }

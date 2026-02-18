@@ -6,8 +6,9 @@ public class CourseModel {
     String courseName;
     String TeacherName, SubjectName, ClassName;
     String Timeslot, day;
+    String status; // New field for attendance status
 
-    public CourseModel(int courseid, String courseName, String TeacherName, String SubjectName, String ClassName, String Timeslot, String day)
+    public CourseModel(int courseid, String courseName, String TeacherName, String SubjectName, String ClassName, String Timeslot, String day, String status)
     {
         this.courseid = courseid;
         this.courseName = courseName;
@@ -16,6 +17,16 @@ public class CourseModel {
         this.ClassName = ClassName;
         this.Timeslot = Timeslot;
         this.day = day;
+        this.status = status;
+    }
+
+    // Getters and setters for the new status field
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public int getCourseid() {
@@ -26,11 +37,11 @@ public class CourseModel {
         this.courseid = courseid;
     }
 
-    public String getCourseName() { // Changed return type
+    public String getCourseName() {
         return courseName;
     }
 
-    public void setCourseName(String courseName) { // Changed parameter type
+    public void setCourseName(String courseName) {
         this.courseName = courseName;
     }
 

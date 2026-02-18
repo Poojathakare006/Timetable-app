@@ -15,7 +15,7 @@ import java.util.ArrayList;
 public class DBHelper extends SQLiteOpenHelper {
 
     public static final String DBNAME = "UserDB.db";
-    public static final int DB_VERSION = 9; 
+    public static final int DB_VERSION = 10; // Incremented for new status column
 
     public static final String TABLE_USERS = "users";
     public static final String TABLE_TIMETABLE = "timetable";
@@ -28,16 +28,19 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE " + TABLE_USERS + " (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT UNIQUE, mobile TEXT UNIQUE, username TEXT UNIQUE, password TEXT, user_type TEXT, course TEXT, year TEXT, college_name TEXT)");
-        db.execSQL("CREATE TABLE " + TABLE_TIMETABLE + " (course_id INTEGER PRIMARY KEY AUTOINCREMENT, course_name TEXT, teacher_name TEXT, subject_name TEXT, class_name TEXT, timeslot TEXT, day TEXT)");
+        db.execSQL("CREATE TABLE " + TABLE_TIMETABLE + " (course_id INTEGER PRIMARY KEY AUTOINCREMENT, course_name TEXT, teacher_name TEXT, subject_name TEXT, class_name TEXT, timeslot TEXT, day TEXT, status TEXT)");
         db.execSQL("CREATE TABLE " + TABLE_TIMETABLE_HISTORY + " (history_id INTEGER PRIMARY KEY AUTOINCREMENT, course_name TEXT, pdf_path TEXT, created_at INTEGER)");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_TIMETABLE);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_TIMETABLE_HISTORY);
-        onCreate(db);
+        if (oldVersion < 10) {
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_TIMETABLE + " ADD COLUMN status TEXT");
+            } catch (Exception e) {
+                // If the column already exists, this will fail. We can ignore it.
+            }
+        }
     }
 
     public boolean insertUser(String name, String email, String mobile, String username, String password, String userType, String course, String year, String collegeName) {
@@ -97,8 +100,17 @@ public class DBHelper extends SQLiteOpenHelper {
         values.put("class_name", course.getClassName());
         values.put("timeslot", course.getTimeslot());
         values.put("day", course.getDay());
+        values.put("status", course.getStatus());
         long result = db.insert(TABLE_TIMETABLE, null, values);
         return result != -1;
+    }
+    
+    public boolean updateLectureStatus(int courseId, String status) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("status", status);
+        int result = db.update(TABLE_TIMETABLE, values, "course_id = ?", new String[]{String.valueOf(courseId)});
+        return result > 0;
     }
 
     public boolean updateTimetableEntry(CourseModel course) {
@@ -110,6 +122,7 @@ public class DBHelper extends SQLiteOpenHelper {
         values.put("class_name", course.getClassName());
         values.put("timeslot", course.getTimeslot());
         values.put("day", course.getDay());
+        values.put("status", course.getStatus());
         int result = db.update(TABLE_TIMETABLE, values, "course_id = ?", new String[]{String.valueOf(course.getCourseid())});
         return result > 0;
     }
@@ -120,7 +133,7 @@ public class DBHelper extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_TIMETABLE, null);
         if (cursor.moveToFirst()) {
             do {
-                timetable.add(new CourseModel(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5), cursor.getString(6)));
+                timetable.add(new CourseModel(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5), cursor.getString(6), cursor.getString(7)));
             } while (cursor.moveToNext());
         }
         cursor.close();
@@ -148,7 +161,7 @@ public class DBHelper extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_TIMETABLE + " WHERE day = ? AND timeslot > ? ORDER BY timeslot ASC LIMIT 1", new String[]{day, currentTime});
         CourseModel course = null;
         if (cursor.moveToFirst()) {
-            course = new CourseModel(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5), cursor.getString(6));
+            course = new CourseModel(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5), cursor.getString(6), cursor.getString(7));
         }
         cursor.close();
         return course;

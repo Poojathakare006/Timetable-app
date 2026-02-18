@@ -1,23 +1,45 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="headerCell">
-        <item name="android:padding">10dp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:gravity">center</item>
-        <!-- The background is now set programmatically -->
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="timeCell">
-        <item name="android:padding">10dp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:gravity">center</item>
-        <!-- The background is now set programmatically -->
+    <style name="headerCell" parent="@style/AppTheme">
+        <item name="android_layout_width">100dp</item>
+        <item name="android_layout_height">wrap_content</item>
+        <item name="android_gravity">center</item>
+        <item name="android_padding">10dp</item>
+        <item name="android_textStyle">bold</item>
+        <item name="android_textColor">@color/black</item>
+        <item name="android_background">@color/lightred</item>
     </style>
 
-    <style name="classCell">
-        <item name="android:padding">12dp</item>
-        <item name="android:gravity">center</item>
-        <item name="android:textSize">12sp</item>
-        <!-- The background is now set programmatically -->
+    <style name="timeCell" parent="@style/AppTheme">
+        <item name="android_layout_width">100dp</item>
+        <item name="android_layout_height">80dp</item>
+        <item name="android_gravity">center</item>
+        <item name="android_padding">10dp</item>
+        <item name="android_textStyle">bold</item>
+        <item name="android_textColor">@color/black</item>
+        <item name="android_background">@color/lightred</item>
     </style>
+
+    <style name="classCell" parent="@style/AppTheme">
+        <item name="android_layout_width">100dp</item>
+        <item name="android_layout_height">80dp</item>
+        <item name="android_gravity">center</item>
+        <item name="android_padding">10dp</item>
+        <item name="android_textColor">@android:color/black</item>
+        <item name="android_background">@drawable/class_cell_bg</item>
+    </style>
+
+    <style name="RedRoundedButton" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/darkred</item>
+        <item name="cornerRadius">20dp</item>
+    </style>
+
 </resources>
