@@ -48,7 +48,7 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_marginBottom="24dp"
                     android:fontFamily="sans-serif-black"
-                    android:text="Contact Us"
+                    android:text="ContactUs"
                     android:textColor="#1A1A1A"
                     android:textSize="28sp"
                     android:textStyle="bold" />
