@@ -40,10 +40,6 @@ public class MyProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_my_profile);
 
-        Toolbar toolbar = findViewById(R.id.toolbar_my_profile);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("My Profile");
-
         dbHelper = new DBHelper(this);
         preferences = getSharedPreferences("user_details", MODE_PRIVATE);
 

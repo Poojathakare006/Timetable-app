@@ -7,15 +7,18 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.example.timetableapplication.ModelClass.CourseModel;
+import com.example.timetableapplication.ModelClass.SubjectAnalytics;
 import com.example.timetableapplication.ModelClass.TimetableHistory;
 import com.example.timetableapplication.ModelClass.User;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DBHelper extends SQLiteOpenHelper {
 
     public static final String DBNAME = "UserDB.db";
-    public static final int DB_VERSION = 10; // Incremented for new status column
+    public static final int DB_VERSION = 10;
 
     public static final String TABLE_USERS = "users";
     public static final String TABLE_TIMETABLE = "timetable";
@@ -43,6 +46,35 @@ public class DBHelper extends SQLiteOpenHelper {
         }
     }
 
+    public Map<String, SubjectAnalytics> getSubjectAttendanceSummary() {
+        Map<String, SubjectAnalytics> summary = new HashMap<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT subject_name, status FROM " + TABLE_TIMETABLE + " WHERE status IS NOT NULL AND subject_name IS NOT NULL AND subject_name != 'Recess' AND subject_name != 'Free'";
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                String subjectName = cursor.getString(0);
+                String status = cursor.getString(1);
+
+                SubjectAnalytics analytics = summary.get(subjectName);
+                if (analytics == null) {
+                    analytics = new SubjectAnalytics(subjectName);
+                    summary.put(subjectName, analytics);
+                }
+
+                analytics.incrementTotalLectures();
+                if ("Attended".equals(status)) {
+                    analytics.incrementAttendedLectures();
+                }
+
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return summary;
+    }
+
+    // ... other methods ...
     public boolean insertUser(String name, String email, String mobile, String username, String password, String userType, String course, String year, String collegeName) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();

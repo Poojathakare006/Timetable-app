@@ -1,9 +1,13 @@
 package com.example.timetableapplication;
 
+import android.Manifest;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.LayoutInflater;
@@ -23,11 +27,15 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class SettingsActivity extends AppCompatActivity {
+
+    private static final int NOTIFICATION_PERMISSION_CODE = 101;
 
     TextView tvEditProfile, tvChangePassword, tvClearHistory, tvDeleteAccount, tvColorScheme, tvTimetableOrientation;
     Button btnLogout;
@@ -55,6 +63,15 @@ public class SettingsActivity extends AppCompatActivity {
 
         notificationSwitch.setChecked(preferences.getBoolean("notifications_enabled", false));
 
+        notificationSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                checkNotificationPermissionAndSchedule();
+            } else {
+                cancelAlarm();
+                preferences.edit().putBoolean("notifications_enabled", false).apply();
+            }
+        });
+
         tvEditProfile.setOnClickListener(v -> startActivity(new Intent(SettingsActivity.this, MyProfileActivity.class)));
         btnLogout.setOnClickListener(v -> showLogoutDialog());
         tvChangePassword.setOnClickListener(v -> showChangePasswordDialog());
@@ -63,6 +80,53 @@ public class SettingsActivity extends AppCompatActivity {
         tvColorScheme.setOnClickListener(v -> showColorSchemeDialog());
         tvTimetableOrientation.setOnClickListener(v -> showOrientationDialog());
     }
+
+    private void checkNotificationPermissionAndSchedule() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_PERMISSION_CODE);
+            } else {
+                scheduleAlarm();
+                preferences.edit().putBoolean("notifications_enabled", true).apply();
+            }
+        } else {
+            scheduleAlarm();
+            preferences.edit().putBoolean("notifications_enabled", true).apply();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == NOTIFICATION_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                scheduleAlarm();
+                preferences.edit().putBoolean("notifications_enabled", true).apply();
+            } else {
+                Toast.makeText(this, "Notification permission denied", Toast.LENGTH_SHORT).show();
+                notificationSwitch.setChecked(false);
+            }
+        }
+    }
+
+    private void scheduleAlarm() {
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
+        long interval = 15 * 60 * 1000;
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + interval, interval, pendingIntent);
+        Toast.makeText(this, "Reminders Enabled", Toast.LENGTH_SHORT).show();
+    }
+
+    private void cancelAlarm() {
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+        alarmManager.cancel(pendingIntent);
+        Toast.makeText(this, "Reminders Disabled", Toast.LENGTH_SHORT).show();
+    }
+
 
     private void showOrientationDialog() {
         final String[] orientations = {"Classic (Time on side)", "Horizontal (Days on side)"};
@@ -81,7 +145,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void showColorSchemeDialog() {
-        final String[] themes = {"Default", "Vibrant", "Pastel", "Corporate Blue", "Autumn Harvest", "Sunrise", "Emerald", "Lavender Bliss", "Minty Fresh"};
+        final String[] themes = {"Default", "Vibrant", "Pastel", "Corporate Blue", "Autumn Harvest", "Sunrise", "Emerald", "Lavender Bliss", "Minty Fresh", "Simple"};
         tempSelectedThemeIndex = preferences.getInt("timetable_theme", 0);
 
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_color_scheme_list, null);
@@ -108,7 +172,7 @@ public class SettingsActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private class ColorSchemeAdapter extends ArrayAdapter<String> {
+    private static class ColorSchemeAdapter extends ArrayAdapter<String> {
         private final List<String> themeNames;
         private int selectedIndex;
 
@@ -143,13 +207,12 @@ public class SettingsActivity extends AppCompatActivity {
             return convertView;
         }
 
-        private class ViewHolder {
+        private static class ViewHolder {
             RadioButton radioButton;
             TextView themeName;
         }
     }
 
-    // ... other dialog methods ...
     private void showLogoutDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Logout")
@@ -218,7 +281,7 @@ public class SettingsActivity extends AppCompatActivity {
                         Intent intent = new Intent(SettingsActivity.this, LoginActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
-                        finish( );
+                        finish();
                         Toast.makeText(this, "Account deleted successfully", Toast.LENGTH_SHORT).show();
                     }
                 })

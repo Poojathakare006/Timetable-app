@@ -1,20 +1,20 @@
 package com.example.timetableapplication.ModelClass;
 
 public class TimetableHistory {
-    private int id;
+    private int historyId;
     private String courseName;
     private String pdfPath;
     private long createdAt;
 
-    public TimetableHistory(int id, String courseName, String pdfPath, long createdAt) {
-        this.id = id;
+    public TimetableHistory(int historyId, String courseName, String pdfPath, long createdAt) {
+        this.historyId = historyId;
         this.courseName = courseName;
         this.pdfPath = pdfPath;
         this.createdAt = createdAt;
     }
 
-    public int getId() {
-        return id;
+    public int getHistoryId() {
+        return historyId;
     }
 
     public String getCourseName() {

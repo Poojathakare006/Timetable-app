@@ -78,4 +78,19 @@
         <item>#E0FFFF</item> <!-- Light Cyan -->
         <item>#B2DFDB</item> <!-- Pale Teal -->
     </array>
+
+    <array name="simple_white_colors">
+        <item>#F5F5F5</item> <!-- Very Light Gray -->
+        <item>#EFEFEF</item> <!-- Lighter Gray -->
+        <item>#E8E8E8</item> <!-- Light Gray -->
+        <item>#E0E0E0</item> <!-- Soft Gray -->
+    </array>
+
+    <array name="muted_pastels">
+        <item>#D7E3FC</item> <!-- Light Periwinkle -->
+        <item>#F9D8D6</item> <!-- Light Coral -->
+        <item>#C8E6C9</item> <!-- Pale Green -->
+        <item>#FBE7C6</item> <!-- Light Yellow -->
+        <item>#D3C0F9</item> <!-- Light Lavender -->
+    </array>
 </resources>

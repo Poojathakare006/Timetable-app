@@ -1,31 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/main"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:background="@drawable/splash_background"
     tools:context=".SplashActivity">
 
-    <ImageView
-        android:id="@+id/ivSplashLogo"
-        android:src="@drawable/logo"
-        android:layout_width="match_parent"
-        android:layout_height="250dp"
-        android:layout_marginTop="200dp"
-        android:textAlignment="center"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:orientation="vertical">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:id="@+id/tvSplashATM"
-        android:text="Automatic Timetable generation"
-        android:textAlignment="center"
-        android:textColor="@color/black"
-        android:textSize="25sp"
-        android:textStyle="bold"
-        android:layout_marginTop="15sp"/>
+        <TextView
+            android:id="@+id/logo_circle"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:background="@drawable/white_circle"
+            android:gravity="center"
+            android:text="TT"
+            android:textColor="#1A237E"
+            android:textSize="60sp"
+            android:textStyle="bold" />
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/main_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Timetable Genius"
+            android:textColor="#FFFFFF"
+            android:textSize="32sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/sub_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="auto-generated"
+            android:textColor="#BBDEFB" 
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+</RelativeLayout>

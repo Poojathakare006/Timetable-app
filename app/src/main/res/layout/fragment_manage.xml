@@ -3,8 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFF7F7"
-    android:layout_marginTop="?attr/actionBarSize"
+    android:background="@color/saved_files_background"
     tools:context=".Fragments.ManageFragment">
 
     <TextView
@@ -12,11 +11,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:padding="16dp"
+        android:padding="8dp"
         android:text="Generated Timetables"
-        android:textSize="22sp"
+        android:textSize="18sp"
         android:textStyle="bold"
-        android:textColor="@color/black"/>
+        android:textColor="@color/saved_files_text_primary"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/historyRecyclerView"

@@ -4,11 +4,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,7 +22,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText etLoginUsername, etLoginPassword;
     CheckBox cbLoginShowandHidePassword;
     Button btnLoginLogin;
-    TextView tvNewUserClickHere;
+    TextView tvNewUserClickHere, tvForgotPassword;
     SharedPreferences preferences;
     SharedPreferences.Editor editor;
     DBHelper dbHelper;
@@ -52,6 +54,7 @@ public class LoginActivity extends AppCompatActivity {
         cbLoginShowandHidePassword = findViewById(R.id.cbLoginShowandHidePassword);
         btnLoginLogin = findViewById(R.id.btnLoginLogin);
         tvNewUserClickHere = findViewById(R.id.tvNewUserClickHere);
+        tvForgotPassword = findViewById(R.id.tvForgotPassword);
 
         cbLoginShowandHidePassword.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
@@ -66,25 +69,11 @@ public class LoginActivity extends AppCompatActivity {
             String username = etLoginUsername.getText().toString().trim();
             String password = etLoginPassword.getText().toString().trim();
 
-            // Re-introducing detailed client-side validation
             if (username.isEmpty()) {
                 etLoginUsername.setError("Please enter Username");
-            } else if (username.length() < 8) {
-                etLoginUsername.setError("Username must be at least 8 characters");
             } else if (password.isEmpty()) {
                 etLoginPassword.setError("Please enter your Password");
-            } else if (password.length() < 8) {
-                etLoginPassword.setError("Password must be at least 8 characters");
-            } else if (!password.matches(".*[A-Z].*")) {
-                etLoginPassword.setError("Password must contain at least one uppercase letter");
-            } else if (!password.matches(".*[a-z].*")) {
-                etLoginPassword.setError("Password must contain at least one lowercase letter");
-            } else if (!password.matches(".*[0-9].*")) {
-                etLoginPassword.setError("Password must contain at least one number");
-            } else if (!password.matches(".*[@#$%&!+=].*")) {
-                etLoginPassword.setError("Please enter at least one special symbol");
             } else {
-                // Perform the actual database check AFTER validation passes
                 if (dbHelper.checkLogin(username, password)) {
                     Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show();
                     editor.putBoolean("isLogin", true);
@@ -103,6 +92,67 @@ public class LoginActivity extends AppCompatActivity {
             Intent intent = new Intent(LoginActivity.this, RegistrationActivity.class);
             startActivity(intent);
         });
+
+        tvForgotPassword.setOnClickListener(v -> showForgotPasswordDialog());
+    }
+
+    private void showForgotPasswordDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Forgot Password");
+
+        final EditText input = new EditText(this);
+        input.setHint("Enter your username");
+        builder.setView(input);
+
+        builder.setPositiveButton("Reset", (dialog, which) -> {
+            String username = input.getText().toString().trim();
+            if (dbHelper.getUser(username) != null) {
+                showResetPasswordDialog(username);
+            } else {
+                Toast.makeText(this, "Username not found", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
+
+    private void showResetPasswordDialog(final String username) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Reset Password");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 50, 50, 50);
+
+        final EditText newPasswordInput = new EditText(this);
+        newPasswordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        newPasswordInput.setHint("New Password");
+        layout.addView(newPasswordInput);
+
+        final EditText confirmPasswordInput = new EditText(this);
+        confirmPasswordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        confirmPasswordInput.setHint("Confirm New Password");
+        layout.addView(confirmPasswordInput);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Save", (dialog, which) -> {
+            String newPassword = newPasswordInput.getText().toString();
+            String confirmPassword = confirmPasswordInput.getText().toString();
+
+            if (newPassword.equals(confirmPassword)) {
+                if (newPassword.length() >= 6) {
+                    dbHelper.updatePassword(username, newPassword);
+                    Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Password must be at least 6 characters long", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
     }
 
     private void Welcome() {

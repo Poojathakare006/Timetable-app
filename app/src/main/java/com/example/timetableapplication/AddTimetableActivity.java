@@ -19,11 +19,11 @@ import java.util.Iterator;
 public class AddTimetableActivity extends AppCompatActivity {
 
     // UI Elements
-    Button btnAddTeacher, btnAddSubject, btnGenerateTimetable, btnAddRecess, btnAddClasses;
+    Button btnAddTeacher, btnAddSubject, btnGenerateTimetable, btnAddRecess;
     Button btnAddTimeSlot, btnAddDay;
     SwitchCompat toggleOverlap, toggleClash, toggleWorkload;
     EditText etCourseName;
-    TextView tvTeachersAdded, tvSubjectsAdded, etClassesAdd;
+    TextView tvTeachersAdded, tvSubjectsAdded;
 
     // Data Lists
     private ArrayList<String> teachers = new ArrayList<>();
@@ -31,7 +31,6 @@ public class AddTimetableActivity extends AppCompatActivity {
     private ArrayList<String> timeslots = new ArrayList<>();
     private ArrayList<String> days = new ArrayList<>();
     private ArrayList<String> recessSlots = new ArrayList<>();
-    private ArrayList<String> classes = new ArrayList<>();
     DBHelper dbHelper;
 
     @Override
@@ -48,7 +47,6 @@ public class AddTimetableActivity extends AppCompatActivity {
         btnAddTimeSlot = findViewById(R.id.btnAddTimeSlot);
         btnAddDay = findViewById(R.id.btnAddDay);
         btnAddRecess = findViewById(R.id.btnAddRecess);
-        btnAddClasses = findViewById(R.id.btnAddClasses);
         btnGenerateTimetable = findViewById(R.id.btnGenerateTimetable);
         toggleOverlap = findViewById(R.id.toggleOverlap);
         toggleClash = findViewById(R.id.toggleClash);
@@ -56,7 +54,6 @@ public class AddTimetableActivity extends AppCompatActivity {
 
         tvTeachersAdded = findViewById(R.id.etTimetableTeachersAdded0);
         tvSubjectsAdded = findViewById(R.id.etSubAdd);
-        etClassesAdd = findViewById(R.id.etClassesAdd);
 
         // Set Click Listeners
         btnAddTeacher.setOnClickListener(v -> showAddDialog("Teacher Name", teachers, tvTeachersAdded));
@@ -64,7 +61,6 @@ public class AddTimetableActivity extends AppCompatActivity {
         btnAddTimeSlot.setOnClickListener(v -> showAddDialog("Time Slot (e.g., 9:00-10:00)", timeslots, null));
         btnAddDay.setOnClickListener(v -> showDaySelectionDialog());
         btnAddRecess.setOnClickListener(v -> showRecessSelectionDialog());
-        btnAddClasses.setOnClickListener(v -> showAddDialog("Class Name", classes, etClassesAdd));
 
         btnGenerateTimetable.setOnClickListener(v -> generateTimetable());
     }

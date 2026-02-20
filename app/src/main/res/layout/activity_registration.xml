@@ -29,39 +29,57 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            android:background="@drawable/edit_text_background"
             android:hint="Name"
-            android:inputType="textPersonName" />
+            android:inputType="textPersonName"
+            android:padding="12dp" />
 
         <EditText
             android:id="@+id/etRegistrationEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+            android:background="@drawable/edit_text_background"
             android:hint="Email"
-            android:inputType="textEmailAddress" />
+            android:inputType="textEmailAddress"
+            android:padding="12dp" />
 
         <EditText
             android:id="@+id/etRegistrationMobile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+            android:background="@drawable/edit_text_background"
             android:hint="Mobile"
-            android:inputType="phone" />
+            android:inputType="phone"
+            android:padding="12dp" />
 
         <EditText
             android:id="@+id/etRegistrationUsername"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:hint="Username" />
+            android:background="@drawable/edit_text_background"
+            android:hint="Username"
+            android:padding="12dp" />
 
         <EditText
             android:id="@+id/etRegistrationPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+            android:background="@drawable/edit_text_background"
             android:hint="Password"
-            android:inputType="textPassword" />
+            android:inputType="textPassword"
+            android:padding="12dp" />
+
+        <CheckBox
+            android:id="@+id/cbregisterShowPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Show Password" />
+
 
         <RadioGroup
             android:id="@+id/rgUserType"
@@ -90,7 +108,7 @@
                 android:layout_marginStart="16dp"
                 android:text="Teacher" />
         </RadioGroup>
-        
+
         <LinearLayout
             android:id="@+id/student_fields_container"
             android:layout_width="match_parent"
@@ -102,21 +120,27 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:hint="Course (e.g., BCA, BSc)" />
+                android:background="@drawable/edit_text_background"
+                android:hint="Course (e.g., BCA, BSc)"
+                android:padding="12dp" />
 
             <EditText
                 android:id="@+id/etYear"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:hint="Year / Semester" />
+                android:background="@drawable/edit_text_background"
+                android:hint="Year / Semester"
+                android:padding="12dp" />
 
             <EditText
                 android:id="@+id/etCollegeName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:hint="College Name" />
+                android:background="@drawable/edit_text_background"
+                android:hint="College Name"
+                android:padding="12dp" />
         </LinearLayout>
 
         <Button

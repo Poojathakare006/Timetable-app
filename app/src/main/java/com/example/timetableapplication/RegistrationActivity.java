@@ -2,8 +2,13 @@ package com.example.timetableapplication;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -17,6 +22,7 @@ public class RegistrationActivity extends AppCompatActivity {
 
     EditText etName, etEmail, etMobile, etUsername, etPassword, etCourse, etYear, etCollegeName;
     RadioGroup rgUserType;
+    CheckBox cbRegisterShowPassword;
     RadioButton rbStudent, rbTeacher;
     LinearLayout studentFieldsContainer;
     Button btnRegister;
@@ -35,6 +41,7 @@ public class RegistrationActivity extends AppCompatActivity {
         etMobile = findViewById(R.id.etRegistrationMobile);
         etUsername = findViewById(R.id.etRegistrationUsername);
         etPassword = findViewById(R.id.etRegistrationPassword);
+        cbRegisterShowPassword = findViewById(R.id.cbregisterShowPassword);
         rgUserType = findViewById(R.id.rgUserType);
         rbStudent = findViewById(R.id.rbStudent);
         rbTeacher = findViewById(R.id.rbTeacher);
@@ -44,6 +51,15 @@ public class RegistrationActivity extends AppCompatActivity {
         etCollegeName = findViewById(R.id.etCollegeName);
         btnRegister = findViewById(R.id.btnRegister);
         tvAlreadyRegistered = findViewById(R.id.tvAlreadyRegistered);
+
+        cbRegisterShowPassword.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                etPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+            } else {
+                etPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            }
+            etPassword.setSelection(etPassword.getText().length());
+        });
 
         rgUserType.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.rbStudent) {
@@ -68,25 +84,75 @@ public class RegistrationActivity extends AppCompatActivity {
         String password = etPassword.getText().toString().trim();
         String userType = rbStudent.isChecked() ? "Student" : "Teacher";
 
+        // --- Start of Advanced Validation ---
+        if (TextUtils.isEmpty(name)) {
+            etName.setError("Name is required");
+            etName.requestFocus();
+            return;
+        }
+
+        if (TextUtils.isEmpty(email)) {
+            etEmail.setError("Email is required");
+            etEmail.requestFocus();
+            return;
+        }
+
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            etEmail.setError("Please enter a valid email address");
+            etEmail.requestFocus();
+            return;
+        }
+
+        if (TextUtils.isEmpty(mobile)) {
+            etMobile.setError("Mobile number is required");
+            etMobile.requestFocus();
+            return;
+        }
+
+        if (TextUtils.isEmpty(username)) {
+            etUsername.setError("Username is required");
+            etUsername.requestFocus();
+            return;
+        }
+
+        if (TextUtils.isEmpty(password)) {
+            etPassword.setError("Password is required");
+            etPassword.requestFocus();
+            return;
+        }
+
+        if (password.length() < 6) {
+            etPassword.setError("Password must be at least 6 characters long");
+            etPassword.requestFocus();
+            return;
+        }
+
         String course = "";
         String year = "";
         String collegeName = "";
-
-        if (name.isEmpty()) {
-            etName.setError("Name is required");
-            return;
-        }
-        // ... add other validation as needed ...
 
         if (userType.equals("Student")) {
             course = etCourse.getText().toString().trim();
             year = etYear.getText().toString().trim();
             collegeName = etCollegeName.getText().toString().trim();
-            if (course.isEmpty() || year.isEmpty() || collegeName.isEmpty()) {
-                Toast.makeText(this, "Please fill all student fields", Toast.LENGTH_SHORT).show();
+            if (TextUtils.isEmpty(course)) {
+                etCourse.setError("Course is required");
+                etCourse.requestFocus();
+                return;
+            }
+            if (TextUtils.isEmpty(year)) {
+                etYear.setError("Year/Semester is required");
+                etYear.requestFocus();
+                return;
+            }
+            if (TextUtils.isEmpty(collegeName)) {
+                etCollegeName.setError("College Name is required");
+                etCollegeName.requestFocus();
                 return;
             }
         }
+
+        // --- End of Advanced Validation ---
 
         boolean success = dbHelper.insertUser(name, email, mobile, username, password, userType, course, year, collegeName);
 

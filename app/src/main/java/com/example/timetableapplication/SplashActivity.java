@@ -1,49 +1,44 @@
 package com.example.timetableapplication;
 
-import static android.content.ContentValues.TAG;
-
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.preference.PreferenceManager;
-import android.util.Log;
-import android.widget.ImageView;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.messaging.FirebaseMessaging;
 
 public class SplashActivity extends AppCompatActivity {
 
-    ImageView ivSplashLogo;
-    TextView tvSplashATM;
+    private static final int SPLASH_TIMEOUT = 2000; // 2s in milli seconds
 
-    SharedPreferences preferences;
-    SharedPreferences.Editor editor;
+    TextView logoCircle, mainText, subText;
+    Animation topAnim, bottomAnim;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        preferences = PreferenceManager.getDefaultSharedPreferences(SplashActivity.this);
-        editor = preferences.edit();
+        // Load animations
+        topAnim = AnimationUtils.loadAnimation(this, R.anim.top_animation);
+        bottomAnim = AnimationUtils.loadAnimation(this, R.anim.bottom_animation);
 
-        ivSplashLogo = findViewById(R.id.ivSplashLogo);
-        tvSplashATM = findViewById(R.id.tvSplashATM);
+        // Hooks to all xml elements
+        logoCircle = findViewById(R.id.logo_circle);
+        mainText = findViewById(R.id.main_text);
+        subText = findViewById(R.id.sub_text);
+
+        // Set animations
+        logoCircle.setAnimation(topAnim);
+        mainText.setAnimation(bottomAnim);
+        subText.setAnimation(bottomAnim);
 
         new Handler().postDelayed(() -> {
             Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
-        }, 1000);
-
-
+        }, SPLASH_TIMEOUT);
     }
 }

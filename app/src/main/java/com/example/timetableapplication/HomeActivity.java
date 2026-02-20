@@ -8,6 +8,7 @@ import androidx.appcompat.widget.Toolbar;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 
 import com.example.timetableapplication.Fragments.HomeFragment;
 import com.example.timetableapplication.Fragments.ManageFragment;
@@ -26,11 +27,16 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        bottomNavigationView = findViewById(R.id.homeBottomNavigationView);
-        bottomNavigationView.setOnItemSelectedListener(this);
-        bottomNavigationView.setSelectedItemId(R.id.bottomnavmenuHome);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setOnNavigationItemSelectedListener(this);
+        // Set the default fragment
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HomeFragment()).commit();
+            bottomNavigationView.setSelectedItemId(R.id.nav_home);
+        }
     }
 
+    // This remains for the top-right overflow menu
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.home_menu_new, menu);
@@ -40,7 +46,7 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
-        if (itemId == R.id.menu_profile) {
+         if (itemId == R.id.menu_profile) {
             startActivity(new Intent(HomeActivity.this, MyProfileActivity.class));
             return true;
         } else if (itemId == R.id.menu_settings) {
@@ -56,22 +62,24 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
         return super.onOptionsItemSelected(item);
     }
 
-    HomeFragment homeFragment = new HomeFragment();
-    ManageFragment manageFragment = new ManageFragment();
-    TimetableFragment timetableFragment = new TimetableFragment();
-
+    // This is for the bottom navigation
     @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
-        if (menuItem.getItemId() == R.id.bottomnavmenuHome) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.homeFramelayout, homeFragment).commit();
-            return true;
-        } else if (menuItem.getItemId() == R.id.bottomnavmenuManage) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.homeFramelayout, manageFragment).commit();
-            return true;
-        } else if (menuItem.getItemId() == R.id.homebottomnavTimetable) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.homeFramelayout, timetableFragment).commit();
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        Fragment selectedFragment = null;
+        int itemId = item.getItemId();
+        if (itemId == R.id.nav_home) {
+            selectedFragment = new HomeFragment();
+        } else if (itemId == R.id.nav_timetable) {
+            selectedFragment = new TimetableFragment();
+        } else if (itemId == R.id.nav_manage) {
+            selectedFragment = new ManageFragment();
+        }
+
+        if (selectedFragment != null) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, selectedFragment).commit();
             return true;
         }
+        
         return false;
     }
 }

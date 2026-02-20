@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFF7F7"
+    android:background="@color/saved_files_background"
     tools:context=".SettingsActivity">
 
     <LinearLayout

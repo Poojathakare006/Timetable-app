@@ -13,12 +13,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar_my_profile"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:titleTextColor="@color/white"/>
 
     </com.google.android.material.appbar.AppBarLayout>
 

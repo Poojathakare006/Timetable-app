@@ -2,10 +2,37 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="red">#EFA1A1</color>
-    <color name="darkred">#D12424</color>
-    <color name="lightred">#F4D1D1</color>
-    <color name="pink">#F4BFD2</color>
-    <color name="purple">#DB9FEB</color>
-    <color name="blue_grey">#607D8B</color>
+    <color name="pink">#FFDDE1</color>
+    <color name="red">#FF0000</color>
+    <color name="darkred">#C62828</color>
+    <color name="lightred">#FFCDD2</color>
+    <color name="purple">#6750A4</color>
+    <color name="lavender">#E6E6FA</color>
+    <color name="colorPrimary">#C62828</color>
+    <color name="colorPrimaryDark">#AD1414</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <!-- Dashboard Colors -->
+    <color name="dashboard_background">#F4F7F6</color>
+    <color name="dashboard_header">#1A237E</color>
+    <color name="dashboard_card_border">#E0E0E0</color>
+    <color name="dashboard_accent_icon">#3F51B5</color>
+    <color name="dashboard_nav_inactive">#9E9E9E</color>
+
+    <!-- Professional Theme Colors -->
+    <color name="professional_header_bg">#E8EAF6</color>
+    <color name="professional_header_text">#1A237E</color>
+    <color name="professional_time_bg">#F5F5F5</color>
+    <color name="professional_share_button">#D32F2F</color>
+    <color name="professional_fab">#00B0FF</color>
+
+    <!-- Saved Files Screen Colors -->
+    <color name="saved_files_background">#F5F5F5</color>
+    <color name="saved_files_text_primary">#212121</color>
+    <color name="saved_files_text_secondary">#757575</color>
+
+    <!-- Timetable Redesign -->
+    <color name="recess_neutral_bg">#F5F5F5</color>
+    <color name="time_column_bg">#FAFAFA</color>
+    <color name="grid_divider">#E0E0E0</color>
 </resources>

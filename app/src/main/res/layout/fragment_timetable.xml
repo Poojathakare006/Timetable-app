@@ -4,113 +4,64 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFF7F7"
-    android:fitsSystemWindows="true">
+    android:background="@color/white"
+    tools:context=".Fragments.TimetableFragment">
 
-    <TextView
-        android:id="@+id/tvCourseNameHeader"
+    <HorizontalScrollView
+        android:id="@+id/timetable_scroll"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:gravity="center"
-        android:padding="16dp"
-        android:text="Timetable"
-        android:textColor="@color/black"
-        android:textSize="22sp"
-        android:textStyle="bold" />
+        android:layout_height="wrap_content">
 
-    <LinearLayout
-        android:id="@+id/bottom_actions"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/btnShareTimetable"
+        <TableLayout
+            android:id="@+id/tableTimetable"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:text="Share as PDF"
-            app:backgroundTint="@color/darkred" />
+            android:layout_margin="8dp"
+            android:stretchColumns="*" />
+    </HorizontalScrollView>
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fab_add_timetable"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            app:backgroundTint="@color/darkred"
-            app:srcCompat="@android:drawable/ic_input_add"
-            app:tint="@color/white" />
-    </LinearLayout>
-
-    <ScrollView
+    <androidx.cardview.widget.CardView
+        android:id="@+id/legend_card"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/bottom_actions"
-        android:layout_below="@+id/tvCourseNameHeader">
+        android:layout_height="wrap_content"
+        android:layout_below="@id/timetable_scroll"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <HorizontalScrollView
-                android:id="@+id/horizontal_scroll"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Legend"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
-                <TableLayout
-                    android:id="@+id/tableTimetable"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" 
-                    android:padding="8dp">
-
-                    <TableRow android:id="@+id/header_row">
-                        <TextView style="@style/headerCell" android:text="TIME" />
-                        <TextView style="@style/headerCell" android:text="MON" />
-                        <TextView style="@style/headerCell" android:text="TUE" />
-                        <TextView style="@style/headerCell" android:text="WED" />
-                        <TextView style="@style/headerCell" android:text="THU" />
-                        <TextView style="@style/headerCell" android:text="FRI" />
-                        <TextView style="@style/headerCell" android:text="SAT" />
-                    </TableRow>
-
-                </TableLayout>
-            </HorizontalScrollView>
-
-            <androidx.cardview.widget.CardView
-                android:id="@+id/legend_card"
+            <GridLayout
+                android:id="@+id/legend_grid"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Legend"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvLegend"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp" />
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                android:layout_marginTop="8dp"
+                android:columnCount="2"/>
 
         </LinearLayout>
-    </ScrollView>
+    </androidx.cardview.widget.CardView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add_timetable"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="24dp"
+        android:src="@android:drawable/ic_input_add"
+        app:backgroundTint="@color/professional_fab"
+        app:elevation="6dp"
+        app:tint="@color/white" />
 
 </RelativeLayout>
