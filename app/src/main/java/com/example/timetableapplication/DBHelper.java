@@ -7,18 +7,15 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.example.timetableapplication.ModelClass.CourseModel;
-import com.example.timetableapplication.ModelClass.SubjectAnalytics;
 import com.example.timetableapplication.ModelClass.TimetableHistory;
 import com.example.timetableapplication.ModelClass.User;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class DBHelper extends SQLiteOpenHelper {
 
     public static final String DBNAME = "UserDB.db";
-    public static final int DB_VERSION = 10;
+    public static final int DB_VERSION = 11; // Increased version
 
     public static final String TABLE_USERS = "users";
     public static final String TABLE_TIMETABLE = "timetable";
@@ -31,50 +28,22 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE " + TABLE_USERS + " (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT UNIQUE, mobile TEXT UNIQUE, username TEXT UNIQUE, password TEXT, user_type TEXT, course TEXT, year TEXT, college_name TEXT)");
-        db.execSQL("CREATE TABLE " + TABLE_TIMETABLE + " (course_id INTEGER PRIMARY KEY AUTOINCREMENT, course_name TEXT, teacher_name TEXT, subject_name TEXT, class_name TEXT, timeslot TEXT, day TEXT, status TEXT)");
+        db.execSQL("CREATE TABLE " + TABLE_TIMETABLE + " (course_id INTEGER PRIMARY KEY AUTOINCREMENT, course_name TEXT, teacher_name TEXT, subject_name TEXT, class_name TEXT, timeslot TEXT, day TEXT, status TEXT, notes TEXT)");
         db.execSQL("CREATE TABLE " + TABLE_TIMETABLE_HISTORY + " (history_id INTEGER PRIMARY KEY AUTOINCREMENT, course_name TEXT, pdf_path TEXT, created_at INTEGER)");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion < 10) {
-            try {
-                db.execSQL("ALTER TABLE " + TABLE_TIMETABLE + " ADD COLUMN status TEXT");
-            } catch (Exception e) {
-                // If the column already exists, this will fail. We can ignore it.
-            }
+        if (oldVersion < 11) {
+            db.execSQL("ALTER TABLE " + TABLE_TIMETABLE + " ADD COLUMN notes TEXT");
+        } else {
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_TIMETABLE);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_TIMETABLE_HISTORY);
+            onCreate(db);
         }
     }
 
-    public Map<String, SubjectAnalytics> getSubjectAttendanceSummary() {
-        Map<String, SubjectAnalytics> summary = new HashMap<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT subject_name, status FROM " + TABLE_TIMETABLE + " WHERE status IS NOT NULL AND subject_name IS NOT NULL AND subject_name != 'Recess' AND subject_name != 'Free'";
-        Cursor cursor = db.rawQuery(query, null);
-
-        if (cursor.moveToFirst()) {
-            do {
-                String subjectName = cursor.getString(0);
-                String status = cursor.getString(1);
-
-                SubjectAnalytics analytics = summary.get(subjectName);
-                if (analytics == null) {
-                    analytics = new SubjectAnalytics(subjectName);
-                    summary.put(subjectName, analytics);
-                }
-
-                analytics.incrementTotalLectures();
-                if ("Attended".equals(status)) {
-                    analytics.incrementAttendedLectures();
-                }
-
-            } while (cursor.moveToNext());
-        }
-        cursor.close();
-        return summary;
-    }
-
-    // ... other methods ...
     public boolean insertUser(String name, String email, String mobile, String username, String password, String userType, String course, String year, String collegeName) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -109,19 +78,6 @@ public class DBHelper extends SQLiteOpenHelper {
         cursor.close();
         return user;
     }
-    
-    public boolean updatePassword(String username, String newPassword) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("password", newPassword);
-        int result = db.update(TABLE_USERS, values, "username = ?", new String[]{username});
-        return result > 0;
-    }
-
-    public void deleteUser(String username) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_USERS, "username = ?", new String[]{username});
-    }
 
     public boolean addTimetableEntry(CourseModel course) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -133,16 +89,36 @@ public class DBHelper extends SQLiteOpenHelper {
         values.put("timeslot", course.getTimeslot());
         values.put("day", course.getDay());
         values.put("status", course.getStatus());
+        values.put("notes", "");
         long result = db.insert(TABLE_TIMETABLE, null, values);
         return result != -1;
     }
-    
+
     public boolean updateLectureStatus(int courseId, String status) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("status", status);
         int result = db.update(TABLE_TIMETABLE, values, "course_id = ?", new String[]{String.valueOf(courseId)});
         return result > 0;
+    }
+
+    public boolean updateLectureNotes(int courseId, String notes) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("notes", notes);
+        int result = db.update(TABLE_TIMETABLE, values, "course_id = ?", new String[]{String.valueOf(courseId)});
+        return result > 0;
+    }
+
+    public String getLectureNotes(int courseId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT notes FROM " + TABLE_TIMETABLE + " WHERE course_id = ?", new String[]{String.valueOf(courseId)});
+        String notes = "";
+        if (cursor.moveToFirst()) {
+            notes = cursor.getString(0);
+        }
+        cursor.close();
+        return notes != null ? notes : "";
     }
 
     public boolean updateTimetableEntry(CourseModel course) {
@@ -171,54 +147,10 @@ public class DBHelper extends SQLiteOpenHelper {
         cursor.close();
         return timetable;
     }
-    
+
     public void clearTimetableData() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_TIMETABLE, null, null);
-    }
-    
-    public int getTimetableCount() {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT COUNT(DISTINCT course_name) FROM " + TABLE_TIMETABLE, null);
-        int count = 0;
-        if (cursor.moveToFirst()) {
-            count = cursor.getInt(0);
-        }
-        cursor.close();
-        return count;
-    }
-
-    public CourseModel getNextClass(String day, String currentTime) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_TIMETABLE + " WHERE day = ? AND timeslot > ? ORDER BY timeslot ASC LIMIT 1", new String[]{day, currentTime});
-        CourseModel course = null;
-        if (cursor.moveToFirst()) {
-            course = new CourseModel(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5), cursor.getString(6), cursor.getString(7));
-        }
-        cursor.close();
-        return course;
-    }
-    
-    public int getLecturesForTeacherToday(String teacherName, String day) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_TIMETABLE + " WHERE teacher_name = ? AND day = ?", new String[]{teacherName, day});
-        int count = 0;
-        if (cursor.moveToFirst()) {
-            count = cursor.getInt(0);
-        }
-        cursor.close();
-        return count;
-    }
-
-    public int getLecturesForTeacherThisWeek(String teacherName) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_TIMETABLE + " WHERE teacher_name = ?", new String[]{teacherName});
-        int count = 0;
-        if (cursor.moveToFirst()) {
-            count = cursor.getInt(0);
-        }
-        cursor.close();
-        return count;
     }
 
     public boolean addTimetableHistory(TimetableHistory history) {
@@ -248,9 +180,83 @@ public class DBHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_TIMETABLE_HISTORY, "history_id = ?", new String[]{String.valueOf(historyId)});
     }
-    
+
     public void clearAllTimetableHistory() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_TIMETABLE_HISTORY, null, null);
+    }
+
+    public int getTimetableCount() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT COUNT(DISTINCT course_name) FROM " + TABLE_TIMETABLE, null);
+        int count = 0;
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0);
+        }
+        cursor.close();
+        return count;
+    }
+
+    public boolean updatePassword(String username, String newPassword) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("password", newPassword);
+        int result = db.update(TABLE_USERS, values, "username = ?", new String[]{username});
+        return result > 0;
+    }
+
+    public void deleteUser(String username) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_USERS, "username = ?", new String[]{username});
+    }
+
+    // New methods for Dashboard
+    public int getLecturesCountForDay(String day) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_TIMETABLE + " WHERE day = ? AND subject_name != 'Recess' AND subject_name != 'Free'", new String[]{day});
+        int count = 0;
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0);
+        }
+        cursor.close();
+        return count;
+    }
+
+    public CourseModel getNextClass(String day, String currentTime) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_TIMETABLE + " WHERE day = ? AND subject_name != 'Recess' AND subject_name != 'Free' ORDER BY timeslot ASC", new String[]{day});
+        CourseModel nextClass = null;
+        if (cursor.moveToFirst()) {
+            do {
+                String timeslot = cursor.getString(5);
+                String startTime = timeslot.split("-")[0].trim();
+                if (startTime.compareTo(currentTime) > 0) {
+                    nextClass = new CourseModel(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3), cursor.getString(4), cursor.getString(5), cursor.getString(6), cursor.getString(7));
+                    break;
+                }
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return nextClass;
+    }
+
+    public int getAttendancePercentage() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT status FROM " + TABLE_TIMETABLE + " WHERE status IS NOT NULL AND subject_name != 'Recess' AND subject_name != 'Free'", null);
+        int total = cursor.getCount();
+        if (total == 0) {
+            cursor.close();
+            return 0;
+        }
+        int attended = 0;
+        if (cursor.moveToFirst()) {
+            do {
+                if ("Attended".equals(cursor.getString(0))) {
+                    attended++;
+                }
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return (attended * 100) / total;
     }
 }

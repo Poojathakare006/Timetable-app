@@ -16,7 +16,7 @@
             android:id="@+id/toolbar_about_us"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/darkred"
+            android:background="@color/dashboard_header"
             app:title="About Us"
             app:titleTextColor="@color/white"/>
 

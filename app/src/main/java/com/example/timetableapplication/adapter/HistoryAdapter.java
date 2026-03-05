@@ -1,7 +1,6 @@
 package com.example.timetableapplication.adapter;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.text.format.Formatter;
@@ -122,7 +121,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
             fileDeleted = file.delete();
         }
 
-        // 2. Delete from database
+        // 2. Delete from local SQLite database
         dbHelper.deleteTimetableHistory(history.getHistoryId());
 
         // 3. Remove from RecyclerView
@@ -133,7 +132,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
         if(fileDeleted) {
              Toast.makeText(context, "File deleted successfully", Toast.LENGTH_SHORT).show();
         } else {
-             Toast.makeText(context, "Record deleted, but file not found on disk.", Toast.LENGTH_SHORT).show();
+             Toast.makeText(context, "Record deleted from database.", Toast.LENGTH_SHORT).show();
         }
     }
 

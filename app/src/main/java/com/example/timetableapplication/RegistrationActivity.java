@@ -84,84 +84,27 @@ public class RegistrationActivity extends AppCompatActivity {
         String password = etPassword.getText().toString().trim();
         String userType = rbStudent.isChecked() ? "Student" : "Teacher";
 
-        // --- Start of Advanced Validation ---
-        if (TextUtils.isEmpty(name)) {
-            etName.setError("Name is required");
-            etName.requestFocus();
-            return;
-        }
-
-        if (TextUtils.isEmpty(email)) {
-            etEmail.setError("Email is required");
-            etEmail.requestFocus();
+        if (TextUtils.isEmpty(name) || TextUtils.isEmpty(email) || TextUtils.isEmpty(mobile) ||
+                TextUtils.isEmpty(username) || TextUtils.isEmpty(password)) {
+            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            etEmail.setError("Please enter a valid email address");
-            etEmail.requestFocus();
+            etEmail.setError("Enter valid email");
             return;
         }
 
-        if (TextUtils.isEmpty(mobile)) {
-            etMobile.setError("Mobile number is required");
-            etMobile.requestFocus();
-            return;
-        }
+        String course = etCourse.getText().toString().trim();
+        String year = etYear.getText().toString().trim();
+        String collegeName = etCollegeName.getText().toString().trim();
 
-        if (TextUtils.isEmpty(username)) {
-            etUsername.setError("Username is required");
-            etUsername.requestFocus();
-            return;
-        }
-
-        if (TextUtils.isEmpty(password)) {
-            etPassword.setError("Password is required");
-            etPassword.requestFocus();
-            return;
-        }
-
-        if (password.length() < 6) {
-            etPassword.setError("Password must be at least 6 characters long");
-            etPassword.requestFocus();
-            return;
-        }
-
-        String course = "";
-        String year = "";
-        String collegeName = "";
-
-        if (userType.equals("Student")) {
-            course = etCourse.getText().toString().trim();
-            year = etYear.getText().toString().trim();
-            collegeName = etCollegeName.getText().toString().trim();
-            if (TextUtils.isEmpty(course)) {
-                etCourse.setError("Course is required");
-                etCourse.requestFocus();
-                return;
-            }
-            if (TextUtils.isEmpty(year)) {
-                etYear.setError("Year/Semester is required");
-                etYear.requestFocus();
-                return;
-            }
-            if (TextUtils.isEmpty(collegeName)) {
-                etCollegeName.setError("College Name is required");
-                etCollegeName.requestFocus();
-                return;
-            }
-        }
-
-        // --- End of Advanced Validation ---
-
-        boolean success = dbHelper.insertUser(name, email, mobile, username, password, userType, course, year, collegeName);
-
-        if (success) {
+        if (dbHelper.insertUser(name, email, mobile, username, password, userType, course, year, collegeName)) {
             Toast.makeText(this, "Registration Successful", Toast.LENGTH_SHORT).show();
             startActivity(new Intent(RegistrationActivity.this, LoginActivity.class));
             finish();
         } else {
-            Toast.makeText(this, "Registration failed. Username, email, or mobile may already exist.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Registration Failed", Toast.LENGTH_SHORT).show();
         }
     }
 }

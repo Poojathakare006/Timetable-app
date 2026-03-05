@@ -1,6 +1,7 @@
 package com.example.timetableapplication.adapter;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,111 +10,165 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.timetableapplication.R;
 import com.example.timetableapplication.ModelClass.CourseModel;
+import com.example.timetableapplication.R;
+import com.google.android.material.card.MaterialCardView;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
-public class TimetableAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.ViewHolder> {
 
     private final Context context;
-    private final List<Object> items;
+    private final List<CourseModel> timetableList;
+    private final OnItemClickListener listener;
+    private final int[] colors;
 
-    private static final int TYPE_HEADER = 0;
-    private static final int TYPE_TIME = 1;
-    private static final int TYPE_CELL = 2;
-    private static final int TYPE_EMPTY = 3;
-
-    public TimetableAdapter(Context context, List<Object> items) {
-        this.context = context;
-        this.items = items;
+    public interface OnItemClickListener {
+        void onItemClick(CourseModel course);
     }
 
-    @Override
-    public int getItemViewType(int position) {
-        Object item = items.get(position);
-        if (item instanceof String && ((String) item).equals("HEADER")) {
-            return TYPE_HEADER;
-        } else if (item instanceof String) {
-            return TYPE_TIME;
-        } else if (item instanceof CourseModel) {
-            return TYPE_CELL;
-        } else {
-            return TYPE_EMPTY;
-        }
+    public TimetableAdapter(Context context, List<CourseModel> timetableList, int[] colors, OnItemClickListener listener) {
+        this.context = context;
+        this.timetableList = timetableList;
+        this.colors = colors;
+        this.listener = listener;
     }
 
     @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view;
-        switch (viewType) {
-            case TYPE_HEADER:
-                view = LayoutInflater.from(context).inflate(R.layout.item_timetable_header, parent, false);
-                return new HeaderViewHolder(view);
-            case TYPE_TIME:
-                view = LayoutInflater.from(context).inflate(R.layout.item_timetable_time, parent, false);
-                return new TimeViewHolder(view);
-            case TYPE_CELL:
-                view = LayoutInflater.from(context).inflate(R.layout.item_timetable_cell, parent, false);
-                return new CellViewHolder(view);
-            case TYPE_EMPTY:
-            default:
-                view = LayoutInflater.from(context).inflate(R.layout.item_timetable_empty, parent, false);
-                return new EmptyViewHolder(view);
-        }
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.item_timetable_card, parent, false);
+        return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        int viewType = getItemViewType(position);
-        switch (viewType) {
-            case TYPE_HEADER:
-                break;
-            case TYPE_TIME:
-                ((TimeViewHolder) holder).time.setText((String) items.get(position));
-                break;
-            case TYPE_CELL:
-                CourseModel course = (CourseModel) items.get(position);
-                ((CellViewHolder) holder).subject.setText(course.getSubjectName());
-                break;
-            case TYPE_EMPTY:
-                break;
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        CourseModel course = timetableList.get(position);
+
+        holder.tvSubject.setText(course.getSubjectName().toUpperCase());
+        
+        // Add brackets only if not Recess or Free
+        String subject = course.getSubjectName().toLowerCase();
+        if (subject.contains("recess") || subject.contains("free")) {
+            holder.tvTeacher.setText("");
+        } else {
+            holder.tvTeacher.setText("(" + course.getTeacherName() + ")");
         }
+        
+        holder.tvTime.setText(formatTimeSlot(course.getTimeslot()));
+
+        // Status Symbol
+        String status = course.getStatus();
+        if ("Attended".equals(status)) {
+            holder.tvStatus.setText("✅");
+        } else if ("Skipped".equals(status)) {
+            holder.tvStatus.setText("❌");
+        } else {
+            holder.tvStatus.setText("");
+        }
+
+        // Apply Theme Color
+        if (subject.contains("recess") || subject.contains("free")) {
+            holder.cardView.setCardBackgroundColor(Color.parseColor("#FFF9C4"));
+        } else if (colors != null && colors.length > 0) {
+            int colorIndex = Math.abs(course.getSubjectName().hashCode()) % colors.length;
+            holder.cardView.setCardBackgroundColor(colors[colorIndex]);
+        }
+
+        // Highlight Ongoing
+        if (isCurrentLecture(course)) {
+            holder.tvNowBadge.setVisibility(View.VISIBLE);
+            holder.viewAccentStrip.setVisibility(View.VISIBLE);
+            holder.cardView.setCardElevation(8f);
+        } else {
+            holder.tvNowBadge.setVisibility(View.GONE);
+            holder.viewAccentStrip.setVisibility(View.GONE);
+            holder.cardView.setCardElevation(2f);
+        }
+
+        holder.itemView.setOnClickListener(v -> listener.onItemClick(course));
+    }
+
+    private String formatTimeSlot(String rawTime) {
+        try {
+            String clean = rawTime.toLowerCase().replace(" to ", "-").replace(" ", "");
+            String[] parts = clean.split("-");
+            if (parts.length < 2) return rawTime;
+            return formatSingleTime(parts[0]) + " – " + formatSingleTime(parts[1]);
+        } catch (Exception e) {
+            return rawTime;
+        }
+    }
+
+    private String formatSingleTime(String time) {
+        try {
+            SimpleDateFormat inFormat = new SimpleDateFormat("hh:mm", Locale.US);
+            if (time.contains("am") || time.contains("pm")) {
+                inFormat = new SimpleDateFormat("hh:mma", Locale.US);
+            }
+            Date date = inFormat.parse(time);
+            SimpleDateFormat outFormat = new SimpleDateFormat("hh:mm a", Locale.US);
+            return outFormat.format(date);
+        } catch (Exception e) {
+            return time.toUpperCase();
+        }
+    }
+
+    private boolean isCurrentLecture(CourseModel course) {
+        try {
+            Calendar now = Calendar.getInstance();
+            String currentDay = new SimpleDateFormat("EEE", Locale.US).format(now.getTime()).toUpperCase();
+            if (!course.getDay().equalsIgnoreCase(currentDay)) return false;
+
+            String timeslot = course.getTimeslot().toLowerCase().replace(" to ", "-").replace(" ", "");
+            String[] parts = timeslot.split("-");
+            if (parts.length < 2) return false;
+
+            int startMin = convertToMinutes(parts[0]);
+            int endMin = convertToMinutes(parts[1]);
+            if (endMin <= startMin) endMin += 12 * 60;
+
+            int currentMin = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE);
+            return currentMin >= startMin && currentMin < endMin;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private int convertToMinutes(String timeStr) {
+        int offset = 0;
+        if (timeStr.contains("pm") && !timeStr.startsWith("12")) offset = 12 * 60;
+        if (timeStr.contains("am") && timeStr.startsWith("12")) offset = -12 * 60;
+        String cleanTime = timeStr.replaceAll("[^0-9:]", "");
+        String[] hm = cleanTime.split(":");
+        int h = Integer.parseInt(hm[0]);
+        int m = (hm.length > 1) ? Integer.parseInt(hm[1]) : 0;
+        return h * 60 + m + offset;
     }
 
     @Override
     public int getItemCount() {
-        return items.size();
+        return timetableList.size();
     }
 
-    public static class HeaderViewHolder extends RecyclerView.ViewHolder {
-        TextView header;
-        public HeaderViewHolder(@NonNull View itemView) {
-            super(itemView);
-            header = (TextView) itemView;
-        }
-    }
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView tvTime, tvSubject, tvTeacher, tvStatus, tvNowBadge;
+        View viewAccentStrip;
+        MaterialCardView cardView;
 
-    public static class TimeViewHolder extends RecyclerView.ViewHolder {
-        TextView time;
-        public TimeViewHolder(@NonNull View itemView) {
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            time = (TextView) itemView;
-        }
-    }
-
-    public static class CellViewHolder extends RecyclerView.ViewHolder {
-        TextView subject;
-        public CellViewHolder(@NonNull View itemView) {
-            super(itemView);
-            subject = (TextView) itemView;
-        }
-    }
-
-    public static class EmptyViewHolder extends RecyclerView.ViewHolder {
-        public EmptyViewHolder(@NonNull View itemView) {
-            super(itemView);
+            tvTime = itemView.findViewById(R.id.tvCardTime);
+            tvSubject = itemView.findViewById(R.id.tvCardSubject);
+            tvTeacher = itemView.findViewById(R.id.tvCardTeacher);
+            tvStatus = itemView.findViewById(R.id.tvCardStatus);
+            tvNowBadge = itemView.findViewById(R.id.tvNowBadge);
+            viewAccentStrip = itemView.findViewById(R.id.viewAccentStrip);
+            cardView = itemView.findViewById(R.id.cardView);
         }
     }
 }

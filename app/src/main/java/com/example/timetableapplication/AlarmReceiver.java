@@ -9,8 +9,6 @@ import android.content.Intent;
 import android.os.Build;
 import androidx.core.app.NotificationCompat;
 
-import com.example.timetableapplication.ModelClass.CourseModel;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -19,16 +17,15 @@ public class AlarmReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        DBHelper dbHelper = new DBHelper(context);
+        // DBHelper has been removed for MySQL integration.
+        // You will need to implement a mechanism to get the upcoming class
+        // from your server. This might involve making an API call here,
+        // or pre-fetching the day's schedule and storing it in SharedPreferences.
 
-        String currentDayAbbr = new SimpleDateFormat("EEE", Locale.getDefault()).format(new Date()).toUpperCase();
-        String currentTime = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(new Date());
-
-        CourseModel nextClass = dbHelper.getNextClass(currentDayAbbr, currentTime);
-
-        if (nextClass != null) {
-            showNotification(context, "Upcoming Class", "Your next class is " + nextClass.getSubjectName() + " at " + nextClass.getTimeslot());
-        }
+        // Example of what to do when you have the next class data:
+        // String subjectName = ...; // Get from your API response
+        // String timeslot = ...;  // Get from your API response
+        // showNotification(context, "Upcoming Class", "Your next class is " + subjectName + " at " + timeslot);
     }
 
     private void showNotification(Context context, String title, String message) {

@@ -62,7 +62,7 @@
                 android:layout_height="wrap_content"
                 android:drawableStart="@android:drawable/ic_dialog_email"
                 android:drawablePadding="8dp"
-                android:text="contact@timetableapp.com"
+                android:text="poojathakare110@gmail.com"
                 android:textSize="16sp" />
 
             <TextView

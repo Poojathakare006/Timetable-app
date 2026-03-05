@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bottom_sheet_background">
+
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="24dp"
+        android:background="#DDDDDD" />
+
+    <TextView
+        android:id="@+id/bsSubject"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Subject Name"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="#212121" />
+
+    <TextView
+        android:id="@+id/bsFaculty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Faculty: Dr. Name"
+        android:textSize="14sp"
+        android:textColor="#666666"
+        android:layout_marginTop="2dp" />
+
+    <TextView
+        android:id="@+id/bsClassroom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Classroom: Lab 101"
+        android:textSize="14sp"
+        android:textColor="#666666"
+        android:layout_marginTop="2dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        android:weightSum="2">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnMarkAttended"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="Attended ✅"
+            android:textAllCaps="false"
+            app:strokeColor="@color/brand_primary" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnMarkSkipped"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:text="Skipped ❌"
+            android:textAllCaps="false"
+            app:strokeColor="@color/brand_primary" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lecture Notes"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/dashboard_header"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/etLectureNotes"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="@drawable/edit_text_background"
+        android:gravity="top"
+        android:hint="Type your notes here..."
+        android:padding="12dp"
+        android:textSize="14sp"
+        android:inputType="textMultiLine" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSaveNotes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Save Notes"
+        android:backgroundTint="@color/dashboard_header"
+        app:cornerRadius="8dp" />
+
+</LinearLayout>

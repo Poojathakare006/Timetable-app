@@ -16,7 +16,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -67,21 +66,20 @@ public class MyProfileActivity extends AppCompatActivity {
                 tvName.setText(user.getName());
                 tvUsername.setText("@" + user.getUsername());
 
-                if ("Student".equals(user.getUserType())) {
+                if ("Student".equalsIgnoreCase(user.getUserType())) {
                     studentInfoContainer.setVisibility(View.VISIBLE);
                     tvCourseLabel.setText("Course");
                     tvCourse.setText(user.getCourse());
                     tvYear.setText(user.getYear());
                     tvCollege.setText(user.getCollegeName());
-                } else { // Teacher
+                } else { // Teacher / Admin
                     studentInfoContainer.setVisibility(View.GONE);
-                    tvCourseLabel.setText("Subjects Taught");
-                    tvCourse.setText("Not specified"); 
+                    tvCourseLabel.setText("User Type");
+                    tvCourse.setText(user.getUserType()); 
                 }
 
                 int count = dbHelper.getTimetableCount();
                 tvTimetablesCreated.setText(String.valueOf(count));
-
             }
         }
     }
@@ -119,7 +117,6 @@ public class MyProfileActivity extends AppCompatActivity {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             imageUri = data.getData();
             profileImage.setImageURI(imageUri);
-            // Here you would typically save the imageUri to the database
         }
     }
 }

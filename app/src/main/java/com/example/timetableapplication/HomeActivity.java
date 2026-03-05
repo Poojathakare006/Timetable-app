@@ -36,7 +36,6 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
         }
     }
 
-    // This remains for the top-right overflow menu
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.home_menu_new, menu);
@@ -62,7 +61,6 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
         return super.onOptionsItemSelected(item);
     }
 
-    // This is for the bottom navigation
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         Fragment selectedFragment = null;

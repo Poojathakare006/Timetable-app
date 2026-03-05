@@ -46,6 +46,7 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
 
     // Firebase - Use the BOM to manage versions
+    implementation("com.loopj.android:android-async-http:1.4.9")
     implementation(platform("com.google.firebase:firebase-bom:33.1.1"))
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.android.gms:play-services-tasks")
@@ -55,4 +56,5 @@ dependencies {
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("com.itextpdf:itext7-core:7.1.15")
+    implementation("com.android.volley:volley:1.2.1")
 }

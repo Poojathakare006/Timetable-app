@@ -1,6 +1,5 @@
 package com.example.timetableapplication.Fragments;
 
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -16,14 +15,12 @@ import android.text.style.StyleSpan;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridLayout;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -31,18 +28,20 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.cardview.widget.CardView;
-import androidx.core.content.ContextCompat;
+import androidx.appcompat.widget.SearchView;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.timetableapplication.AddTimetableActivity;
 import com.example.timetableapplication.DBHelper;
 import com.example.timetableapplication.ModelClass.CourseModel;
 import com.example.timetableapplication.ModelClass.TimetableHistory;
 import com.example.timetableapplication.R;
+import com.example.timetableapplication.adapter.TimetableAdapter;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.pdf.PdfDocument;
@@ -54,184 +53,289 @@ import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.property.UnitValue;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Set;
 
 public class TimetableFragment extends Fragment {
 
-    DBHelper dbHelper;
-    TableLayout tableLayout;
-    FloatingActionButton fab_add_timetable;
-    CardView legendCard;
-    GridLayout legendGrid;
-    List<String> daysOrder = Arrays.asList("MON", "TUE", "WED", "THU", "FRI", "SAT");
+    private DBHelper dbHelper;
+    private RecyclerView rvTimetable;
+    private TableLayout tableTimetable;
+    private View weeklyScrollView;
+    private GridLayout legend_grid; 
+    private FloatingActionButton fab_add_timetable;
+    private Button btnSharePdf;
+    private ImageButton btnFilterFaculty, btnFilterSubject, btnLegendInfo;
+    private SearchView searchView;
+    private TextView tvCourseTitle;
+    private View legend_card;
+    private String role;
+    private boolean isWeeklyView = false;
+    
+    private String currentSearchQuery = "";
+    private String selectedFaculty = "All";
+    private String selectedSubject = "All";
+    
+    private final List<String> daysOrder = Arrays.asList("MON", "TUE", "WED", "THU", "FRI", "SAT");
+    private ArrayList<CourseModel> fullTimetableList = new ArrayList<>();
+    private ArrayList<CourseModel> filteredTimetableList = new ArrayList<>();
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
         View view = inflater.inflate(R.layout.fragment_timetable, container, false);
 
         dbHelper = new DBHelper(getContext());
-        tableLayout = view.findViewById(R.id.tableTimetable);
+        
+        rvTimetable = view.findViewById(R.id.rvTimetable);
+        tableTimetable = view.findViewById(R.id.tableTimetable);
+        weeklyScrollView = view.findViewById(R.id.weeklyScrollView);
+        legend_grid = view.findViewById(R.id.legend_grid); 
+        legend_card = view.findViewById(R.id.legend_card);
         fab_add_timetable = view.findViewById(R.id.fab_add_timetable);
-        legendCard = view.findViewById(R.id.legend_card);
-        legendGrid = view.findViewById(R.id.legend_grid);
+        btnSharePdf = view.findViewById(R.id.btnSharePdf);
+        tvCourseTitle = view.findViewById(R.id.tvCourseTitle);
+        searchView = view.findViewById(R.id.searchView);
+        btnFilterFaculty = view.findViewById(R.id.btnFilterFaculty);
+        btnFilterSubject = view.findViewById(R.id.btnFilterSubject);
+        btnLegendInfo = view.findViewById(R.id.btnLegendInfo);
 
-        fab_add_timetable.setOnClickListener(v -> {
-            if (getActivity() != null) {
-                Intent intent = new Intent(getActivity(), AddTimetableActivity.class);
-                startActivity(intent);
+        if (rvTimetable != null) {
+            rvTimetable.setLayoutManager(new LinearLayoutManager(getContext()));
+        }
+
+        setupToggle(view);
+        setupSearchAndFilters();
+
+        if (getActivity() != null && getActivity().getIntent() != null) {
+            role = getActivity().getIntent().getStringExtra("role");
+            if (role != null && role.equalsIgnoreCase("student")) {
+                if (fab_add_timetable != null) fab_add_timetable.setVisibility(View.GONE);
             }
-        });
+        }
+
+        if (fab_add_timetable != null) {
+            fab_add_timetable.setOnClickListener(v -> {
+                if (getActivity() != null) {
+                    Intent intent = new Intent(getActivity(), AddTimetableActivity.class);
+                    SharedPreferences preferences = getActivity().getSharedPreferences("user_details", Context.MODE_PRIVATE);
+                    String userId = preferences.getString("user_id", null);
+                    intent.putExtra("user_id", userId);
+                    startActivity(intent);
+                }
+            });
+        }
+
+        if (btnSharePdf != null) {
+            btnSharePdf.setOnClickListener(v -> showExportOptionsDialog());
+        }
+
+        if (btnLegendInfo != null) {
+            btnLegendInfo.setOnClickListener(v -> {
+                if (legend_card != null) {
+                    if (legend_card.getVisibility() == View.VISIBLE) legend_card.setVisibility(View.GONE);
+                    else legend_card.setVisibility(View.VISIBLE);
+                }
+            });
+        }
+
+        loadData();
 
         return view;
     }
 
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        inflater.inflate(R.menu.timetable_menu, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.action_share_pdf) {
-            generateAndSharePdf();
-            return true;
+    private void setupToggle(View view) {
+        MaterialButtonToggleGroup toggleGroup = view.findViewById(R.id.toggleGroup);
+        if (toggleGroup != null) {
+            toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+                if (isChecked) {
+                    isWeeklyView = (checkedId == R.id.btnWeeklyView);
+                    updateView();
+                }
+            });
         }
-        return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        loadTimetable();
+    private void setupSearchAndFilters() {
+        if (searchView != null) {
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    currentSearchQuery = query;
+                    applyFilters();
+                    return true;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    currentSearchQuery = newText;
+                    applyFilters();
+                    return true;
+                }
+            });
+        }
+
+        if (btnFilterFaculty != null) btnFilterFaculty.setOnClickListener(v -> showFacultyFilterDialog());
+        if (btnFilterSubject != null) btnFilterSubject.setOnClickListener(v -> showSubjectFilterDialog());
     }
 
-    private void loadTimetable() {
+    private void showFacultyFilterDialog() {
         if (getContext() == null) return;
+        Set<String> facultySet = new HashSet<>();
+        facultySet.add("All");
+        for (CourseModel course : fullTimetableList) {
+            if (course.getTeacherName() != null && !course.getTeacherName().isEmpty()) {
+                facultySet.add(course.getTeacherName());
+            }
+        }
+        String[] faculties = facultySet.toArray(new String[0]);
+        Arrays.sort(faculties);
 
-        ArrayList<CourseModel> timetableList = dbHelper.getAllTimetableEntries();
-        tableLayout.removeAllViews();
-        legendGrid.removeAllViews();
+        int checkedItem = 0;
+        for (int i = 0; i < faculties.length; i++) if (faculties[i].equals(selectedFaculty)) checkedItem = i;
 
-        if (timetableList.isEmpty()) {
-            legendCard.setVisibility(View.GONE);
+        new AlertDialog.Builder(getContext())
+                .setTitle("Filter by Faculty")
+                .setSingleChoiceItems(faculties, checkedItem, (dialog, which) -> {
+                    selectedFaculty = faculties[which];
+                    applyFilters();
+                    dialog.dismiss();
+                }).show();
+    }
+
+    private void showSubjectFilterDialog() {
+        if (getContext() == null) return;
+        Set<String> subjectSet = new HashSet<>();
+        subjectSet.add("All");
+        for (CourseModel course : fullTimetableList) {
+            if (!"Recess".equalsIgnoreCase(course.getSubjectName()) && !"Free".equalsIgnoreCase(course.getSubjectName())) {
+                subjectSet.add(course.getSubjectName());
+            }
+        }
+        String[] subjects = subjectSet.toArray(new String[0]);
+        Arrays.sort(subjects);
+
+        int checkedItem = 0;
+        for (int i = 0; i < subjects.length; i++) if (subjects[i].equals(selectedSubject)) checkedItem = i;
+
+        new AlertDialog.Builder(getContext())
+                .setTitle("Filter by Subject")
+                .setSingleChoiceItems(subjects, checkedItem, (dialog, which) -> {
+                    selectedSubject = subjects[which];
+                    applyFilters();
+                    dialog.dismiss();
+                }).show();
+    }
+
+    private void applyFilters() {
+        filteredTimetableList.clear();
+        for (CourseModel course : fullTimetableList) {
+            boolean matchesSearch = course.getSubjectName().toLowerCase().contains(currentSearchQuery.toLowerCase());
+            boolean matchesFaculty = selectedFaculty.equals("All") || (course.getTeacherName() != null && course.getTeacherName().equals(selectedFaculty));
+            boolean matchesSubject = selectedSubject.equals("All") || (course.getSubjectName() != null && course.getSubjectName().equals(selectedSubject));
+
+            if (matchesSearch && matchesFaculty && matchesSubject) {
+                filteredTimetableList.add(course);
+            }
+        }
+        updateView();
+    }
+
+    private void loadData() {
+        if (getContext() == null) return;
+        fullTimetableList = dbHelper.getAllTimetableEntries();
+        applyFilters();
+    }
+
+    private void updateView() {
+        if (fullTimetableList.isEmpty()) {
+            if (tvCourseTitle != null) tvCourseTitle.setText("No Timetable Generated");
+            if (legend_card != null) legend_card.setVisibility(View.GONE);
+            if (rvTimetable != null) rvTimetable.setVisibility(View.GONE);
+            if (weeklyScrollView != null) weeklyScrollView.setVisibility(View.GONE);
             return;
         }
 
+        if (tvCourseTitle != null) tvCourseTitle.setText(fullTimetableList.get(0).getCourseName());
+        
+        if (isWeeklyView) {
+            if (rvTimetable != null) rvTimetable.setVisibility(View.GONE);
+            if (weeklyScrollView != null) weeklyScrollView.setVisibility(View.VISIBLE);
+            drawWeeklyGrid();
+        } else {
+            if (rvTimetable != null) rvTimetable.setVisibility(View.VISIBLE);
+            if (weeklyScrollView != null) weeklyScrollView.setVisibility(View.GONE);
+            drawDailyList();
+        }
+        updateLegend();
+    }
+
+    private void drawDailyList() {
+        String today = new SimpleDateFormat("EEE", Locale.US).format(new Date()).toUpperCase();
+        ArrayList<CourseModel> todayList = new ArrayList<>();
+        for (CourseModel course : filteredTimetableList) {
+            if (course.getDay().equalsIgnoreCase(today)) todayList.add(course);
+        }
+        int[] colors = getColorArray();
+        TimetableAdapter adapter = new TimetableAdapter(getContext(), todayList, colors, this::showLectureDetailsBottomSheet);
+        if (rvTimetable != null) rvTimetable.setAdapter(adapter);
+    }
+
+    private void drawWeeklyGrid() {
+        if (tableTimetable == null) return;
+        tableTimetable.removeAllViews();
         Map<String, Map<String, CourseModel>> groupedByTime = new LinkedHashMap<>();
-        for (CourseModel course : timetableList) {
+        for (CourseModel course : filteredTimetableList) {
             groupedByTime.computeIfAbsent(course.getTimeslot(), k -> new LinkedHashMap<>());
-            groupedByTime.get(course.getTimeslot()).put(course.getDay().toUpperCase(), course);
+            Map<String, CourseModel> dayMap = groupedByTime.get(course.getTimeslot());
+            if (dayMap != null) dayMap.put(course.getDay().toUpperCase(), course);
         }
 
-        List<String> timeslots = new ArrayList<>(groupedByTime.keySet());
-
-        SharedPreferences preferences = getContext().getSharedPreferences("user_details", Context.MODE_PRIVATE);
-        int orientation = preferences.getInt("timetable_orientation", 0);
-
-        if (orientation == 1) { // Horizontal
-            drawHorizontalTimetable(timetableList, groupedByTime, timeslots);
-        } else { // Classic
-            Collections.sort(timeslots, Comparator.comparingInt(this::extractStartTime));
-            drawClassicTimetable(timetableList, groupedByTime, timeslots);
-        }
-    }
-
-    private int extractStartTime(String time) {
-        if (time == null) return 0;
-        Pattern p = Pattern.compile("^(\\d+)");
-        Matcher m = p.matcher(time);
-        if (m.find()) {
-            return Integer.parseInt(m.group(1));
-        }
-        return 0;
-    }
-
-    private void drawClassicTimetable(ArrayList<CourseModel> timetableList, Map<String, Map<String, CourseModel>> groupedByTime, List<String> sortedTimeslots) {
         TableRow headerRow = new TableRow(getContext());
         headerRow.addView(createHeaderTextView("TIME"));
-        for (String day : daysOrder) {
-            headerRow.addView(createHeaderTextView(day));
-        }
-        tableLayout.addView(headerRow);
+        for (String day : daysOrder) headerRow.addView(createHeaderTextView(day));
+        tableTimetable.addView(headerRow);
 
-        Map<String, String> subjectLegendMap = new LinkedHashMap<>();
-        Map<String, String> teacherLegendMap = new LinkedHashMap<>();
-        Map<String, Integer> subjectColorMap = getSubjectColorMap(timetableList);
-
-        for (String timeslot : sortedTimeslots) {
+        int[] colors = getColorArray();
+        for (String timeslot : groupedByTime.keySet()) {
             TableRow row = new TableRow(getContext());
             row.addView(createTimeCellTextView(timeslot));
-
-            Map<String, CourseModel> coursesForTime = groupedByTime.get(timeslot);
-
+            Map<String, CourseModel> rowData = groupedByTime.get(timeslot);
             for (String day : daysOrder) {
-                CourseModel course = coursesForTime != null ? coursesForTime.get(day) : null;
-                addCellToRow(row, course, subjectColorMap, subjectLegendMap, teacherLegendMap);
+                CourseModel course = rowData != null ? rowData.get(day) : null;
+                addCellToRow(row, course, colors);
             }
-            tableLayout.addView(row);
+            tableTimetable.addView(row);
         }
-
-        updateLegend(subjectLegendMap, teacherLegendMap, subjectColorMap);
     }
 
-    private void drawHorizontalTimetable(ArrayList<CourseModel> timetableList, Map<String, Map<String, CourseModel>> groupedByTime, List<String> sortedTimeslots) {
-        TableRow headerRow = new TableRow(getContext());
-        headerRow.addView(createHeaderTextView("DAY"));
-        for (String timeslot : sortedTimeslots) {
-            headerRow.addView(createHeaderTextView(timeslot));
-        }
-        tableLayout.addView(headerRow);
-
-        Map<String, String> subjectLegendMap = new LinkedHashMap<>();
-        Map<String, String> teacherLegendMap = new LinkedHashMap<>();
-        Map<String, Integer> subjectColorMap = getSubjectColorMap(timetableList);
-
-        for (String day : daysOrder) {
-            TableRow row = new TableRow(getContext());
-            row.addView(createTimeCellTextView(day));
-
-            for (String timeslot : sortedTimeslots) {
-                CourseModel course = groupedByTime.get(timeslot) != null ? groupedByTime.get(timeslot).get(day) : null;
-                addCellToRow(row, course, subjectColorMap, subjectLegendMap, teacherLegendMap);
-            }
-            tableLayout.addView(row);
-        }
-
-        updateLegend(subjectLegendMap, teacherLegendMap, subjectColorMap);
-    }
-
-    private void addCellToRow(TableRow row, CourseModel course, Map<String, Integer> subjectColorMap, Map<String, String> subjectLegendMap, Map<String, String> teacherLegendMap) {
+    private void addCellToRow(TableRow row, CourseModel course, int[] colors) {
         TextView classCell;
         if (course != null) {
             String statusPrefix = getStatusPrefix(course.getStatus());
+            int c;
             if ("Recess".equalsIgnoreCase(course.getSubjectName()) || "Free".equalsIgnoreCase(course.getSubjectName())) {
-                classCell = createStyledTextView(statusPrefix + course.getSubjectName(), 0, ContextCompat.getColor(getContext(), R.color.recess_neutral_bg));
+                c = Color.parseColor("#FFF9C4");
+                classCell = createStyledTextView(statusPrefix + course.getSubjectName(), 0, c);
             } else {
-                String subjectAbbr = getAbbreviation(course.getSubjectName(), 10);
-                String teacherAbbr = getAbbreviation(course.getTeacherName(), 12);
-
-                if (!subjectAbbr.equals(course.getSubjectName())) subjectLegendMap.put(subjectAbbr, course.getSubjectName());
-                if (!teacherAbbr.equals(course.getTeacherName())) teacherLegendMap.put(teacherAbbr, course.getTeacherName());
-
-                SpannableString cellText = new SpannableString(statusPrefix + subjectAbbr + "\n" + teacherAbbr);
-                cellText.setSpan(new StyleSpan(Typeface.BOLD), statusPrefix.length(), statusPrefix.length() + subjectAbbr.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-                Integer cellColor = subjectColorMap.get(course.getSubjectName());
-                if (cellColor == null) cellColor = Color.WHITE;
-                classCell = createStyledTextView(cellText, 0, cellColor);
-                classCell.setOnClickListener(v -> showActionDialog(course));
+                String subAbbr = getAbbreviation(course.getSubjectName(), 8);
+                String teachAbbr = getAbbreviation(course.getTeacherName(), 10);
+                
+                SpannableString content = new SpannableString(statusPrefix + subAbbr + "\n(" + teachAbbr + ")");
+                content.setSpan(new StyleSpan(Typeface.BOLD), statusPrefix.length(), statusPrefix.length() + subAbbr.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                
+                int cIndex = colors.length > 0 ? Math.abs(course.getSubjectName().hashCode()) % colors.length : 0;
+                c = colors.length > 0 ? colors[cIndex] : Color.LTGRAY;
+                classCell = createStyledTextView(content, 0, c);
+                classCell.setOnClickListener(v -> showLectureDetailsBottomSheet(course));
             }
         } else {
             classCell = createStyledTextView("", 0, Color.WHITE);
@@ -239,108 +343,224 @@ public class TimetableFragment extends Fragment {
         row.addView(classCell);
     }
 
-    private void updateLegend(Map<String, String> subjectLegendMap, Map<String, String> teacherLegendMap, Map<String, Integer> subjectColorMap) {
-        if (subjectLegendMap.isEmpty() && teacherLegendMap.isEmpty()) {
-            legendCard.setVisibility(View.GONE);
-        } else {
-            legendCard.setVisibility(View.VISIBLE);
-            legendGrid.removeAllViews();
+    private void showLectureDetailsBottomSheet(CourseModel course) {
+        if (getContext() == null) return;
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(getContext());
+        View sheetView = LayoutInflater.from(getContext()).inflate(R.layout.bottom_sheet_lecture_details, null);
+        
+        TextView tvSubject = sheetView.findViewById(R.id.bsSubject);
+        TextView tvFaculty = sheetView.findViewById(R.id.bsFaculty);
+        TextView tvClassroom = sheetView.findViewById(R.id.bsClassroom);
+        EditText etNotes = sheetView.findViewById(R.id.etLectureNotes);
+        Button btnSaveNotes = sheetView.findViewById(R.id.btnSaveNotes);
+        Button btnMarkAttended = sheetView.findViewById(R.id.btnMarkAttended);
+        Button btnMarkSkipped = sheetView.findViewById(R.id.btnMarkSkipped);
 
-            for (Map.Entry<String, String> entry : subjectLegendMap.entrySet()) {
-                Integer color = subjectColorMap.get(entry.getValue());
-                if (color == null) color = Color.LTGRAY;
-                addLegendEntry(legendGrid, color, entry.getKey() + ": " + entry.getValue());
+        if (tvSubject != null) tvSubject.setText(course.getSubjectName());
+        if (tvFaculty != null) tvFaculty.setText(String.format("Faculty: %s", course.getTeacherName()));
+        if (tvClassroom != null) tvClassroom.setText(String.format("Classroom: %s", (course.getClassName() != null && !course.getClassName().isEmpty()) ? course.getClassName() : "Not Assigned"));
+
+        if (etNotes != null) etNotes.setText(dbHelper.getLectureNotes(course.getCourseid()));
+
+        if (btnSaveNotes != null) {
+            btnSaveNotes.setOnClickListener(v -> {
+                if (etNotes != null) {
+                    String newNotes = etNotes.getText().toString().trim();
+                    if (dbHelper.updateLectureNotes(course.getCourseid(), newNotes)) {
+                        Toast.makeText(getContext(), "Notes saved!", Toast.LENGTH_SHORT).show();
+                        bottomSheetDialog.dismiss();
+                    }
+                }
+            });
+        }
+
+        if (btnMarkAttended != null) {
+            btnMarkAttended.setOnClickListener(v -> {
+                dbHelper.updateLectureStatus(course.getCourseid(), "Attended");
+                loadData();
+                bottomSheetDialog.dismiss();
+            });
+        }
+
+        if (btnMarkSkipped != null) {
+            btnMarkSkipped.setOnClickListener(v -> {
+                dbHelper.updateLectureStatus(course.getCourseid(), "Skipped");
+                loadData();
+                bottomSheetDialog.dismiss();
+            });
+        }
+
+        bottomSheetDialog.setContentView(sheetView);
+        bottomSheetDialog.show();
+    }
+
+    private void updateLegend() {
+        if (legend_grid == null) return;
+        Map<String, String> subjectLegendMap = new LinkedHashMap<>();
+        Map<String, String> teacherLegendMap = new LinkedHashMap<>();
+        for (CourseModel course : filteredTimetableList) {
+            if (!"Recess".equalsIgnoreCase(course.getSubjectName()) && !"Free".equalsIgnoreCase(course.getSubjectName())) {
+                String subAbbr = getAbbreviation(course.getSubjectName(), 8);
+                String teachAbbr = getAbbreviation(course.getTeacherName(), 10);
+                if (!subAbbr.equalsIgnoreCase(course.getSubjectName())) subjectLegendMap.put(subAbbr, course.getSubjectName());
+                if (course.getTeacherName() != null && !teachAbbr.equalsIgnoreCase(course.getTeacherName())) teacherLegendMap.put(teachAbbr, course.getTeacherName());
             }
-            for (Map.Entry<String, String> entry : teacherLegendMap.entrySet()) {
-                addLegendEntry(legendGrid, Color.GRAY, entry.getKey() + ": " + entry.getValue());
-            }
+        }
+        if (subjectLegendMap.isEmpty() && teacherLegendMap.isEmpty()) {
+            if (legend_card != null) legend_card.setVisibility(View.GONE);
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
+        if (!subjectLegendMap.isEmpty()) {
+            sb.append("Subjects: ");
+            for (Map.Entry<String, String> entry : subjectLegendMap.entrySet()) sb.append(entry.getKey()).append(" - ").append(entry.getValue()).append("; ");
+            sb.append("\n\n");
+        }
+        if (!teacherLegendMap.isEmpty()) {
+            sb.append("Teachers: ");
+            for (Map.Entry<String, String> entry : teacherLegendMap.entrySet()) sb.append(entry.getKey()).append(" - ").append(entry.getValue()).append("; ");
+        }
+        legend_grid.removeAllViews();
+        TextView tvLegend = new TextView(getContext());
+        tvLegend.setText(sb.toString());
+        tvLegend.setTextSize(14);
+        tvLegend.setTextColor(Color.DKGRAY);
+        legend_grid.addView(tvLegend);
+    }
+
+    private void showExportOptionsDialog() {
+        if (getContext() == null || filteredTimetableList.isEmpty()) return;
+        String[] options = {"Export with Colors", "Export without Color (B&W)"};
+        new AlertDialog.Builder(getContext()).setTitle("Choose Export Option").setItems(options, (dialog, which) -> generateAndSharePdf(which == 0)).show();
+    }
+
+    private void generateAndSharePdf(boolean withColor) {
+        if (filteredTimetableList.isEmpty() || getContext() == null) return;
+        String courseName = filteredTimetableList.get(0).getCourseName();
+        File pdfDir = new File(getContext().getExternalFilesDir(null), "pdfs");
+        if (!pdfDir.exists() && !pdfDir.mkdirs()) return;
+        File pdfFile = new File(pdfDir, String.format("%s_%d.pdf", courseName, System.currentTimeMillis()));
+        
+        SharedPreferences preferences = getContext().getSharedPreferences("user_details", Context.MODE_PRIVATE);
+        int orientation = preferences.getInt("timetable_orientation", 0);
+
+        boolean success = false;
+        try (PdfWriter writer = new PdfWriter(pdfFile); PdfDocument pdf = new PdfDocument(writer); Document document = new Document(pdf)) {
+            document.add(new Paragraph(courseName).setBold().setFontSize(20).setTextAlignment(com.itextpdf.layout.property.TextAlignment.CENTER));
+
+            if (orientation == 1) generateHorizontalPdf(document, withColor);
+            else generateClassicPdf(document, withColor);
+
+            success = true;
+        } catch (Exception e) { 
+            e.printStackTrace(); 
+            Toast.makeText(getContext(), "Failed to create PDF", Toast.LENGTH_SHORT).show();
+        }
+
+        if (success) {
+            dbHelper.addTimetableHistory(new TimetableHistory(0, courseName, pdfFile.getAbsolutePath(), System.currentTimeMillis()));
+            sharePdf(pdfFile);
         }
     }
 
-    private void addLegendEntry(GridLayout grid, int color, String text) {
-        LayoutInflater inflater = LayoutInflater.from(getContext());
-        View legendItemView = inflater.inflate(R.layout.item_legend, grid, false);
+    private void generateClassicPdf(Document document, boolean withColor) {
+        float[] columnWidths = {2f, 3f, 3f, 3f, 3f, 3f, 3f};
+        Table table = new Table(UnitValue.createPercentArray(columnWidths));
+        DeviceRgb headerBg = withColor ? new DeviceRgb(248, 215, 218) : new DeviceRgb(220, 220, 220);
+        table.addHeaderCell(new Cell().add(new Paragraph("TIME")).setBackgroundColor(headerBg));
+        for (String day : daysOrder) table.addHeaderCell(new Cell().add(new Paragraph(day)).setBackgroundColor(headerBg));
+        Map<String, Map<String, CourseModel>> groupedByTime = new LinkedHashMap<>();
+        for (CourseModel course : filteredTimetableList) {
+            groupedByTime.computeIfAbsent(course.getTimeslot(), k -> new LinkedHashMap<>());
+            Map<String, CourseModel> dayMap = groupedByTime.get(course.getTimeslot());
+            if (dayMap != null) dayMap.put(course.getDay().toUpperCase(), course);
+        }
+        int[] colors = getColorArray();
+        for (String timeslot : groupedByTime.keySet()) {
+            table.addCell(new Cell().add(new Paragraph(timeslot)).setBackgroundColor(withColor ? new DeviceRgb(253, 234, 234) : new DeviceRgb(245, 245, 245)));
+            Map<String, CourseModel> rowData = groupedByTime.get(timeslot);
+            for (String day : daysOrder) {
+                CourseModel course = rowData != null ? rowData.get(day) : null;
+                addCellToPdfTable(table, course, withColor, colors);
+            }
+        }
+        document.add(table);
+    }
+    private void generateHorizontalPdf(Document document, boolean withColor) {
+        Map<String, Map<String, CourseModel>> groupedByTime = new LinkedHashMap<>();
+        for (CourseModel course : filteredTimetableList) {
+            groupedByTime.computeIfAbsent(course.getTimeslot(), k -> new LinkedHashMap<>());
+            Map<String, CourseModel> dayMap = groupedByTime.get(course.getTimeslot());
+            if (dayMap != null) dayMap.put(course.getDay().toUpperCase(), course);
+        }
+        List<String> timeslots = new ArrayList<>(groupedByTime.keySet());
+        float[] columnWidths = new float[timeslots.size() + 1];
+        Arrays.fill(columnWidths, 3f); columnWidths[0] = 2f;
+        Table table = new Table(UnitValue.createPercentArray(columnWidths));
+        DeviceRgb headerBg = withColor ? new DeviceRgb(248, 215, 218) : new DeviceRgb(220, 220, 220);
+        table.addHeaderCell(new Cell().add(new Paragraph("DAY")).setBackgroundColor(headerBg));
+        for (String ts : timeslots) table.addHeaderCell(new Cell().add(new Paragraph(ts)).setBackgroundColor(headerBg));
+        int[] colors = getColorArray();
+        for (String day : daysOrder) {
+            table.addCell(new Cell().add(new Paragraph(day)).setBackgroundColor(withColor ? new DeviceRgb(253, 234, 234) : new DeviceRgb(245, 245, 245)));
+            for (String ts : timeslots) {
+                CourseModel course = (groupedByTime.get(ts) != null) ? groupedByTime.get(ts).get(day) : null;
+                addCellToPdfTable(table, course, withColor, colors);
+            }
+        }
+        document.add(table);
+    }
 
-        ImageView colorDot = legendItemView.findViewById(R.id.legend_color_dot);
-        TextView legendText = legendItemView.findViewById(R.id.legend_text);
+    private void addCellToPdfTable(Table table, CourseModel course, boolean withColor, int[] colors) {
+        Cell cell = new Cell();
+        if (course != null) {
+            String status = getStatusPrefix(course.getStatus());
+            String subject = course.getSubjectName();
+            String teacher = ("Recess".equalsIgnoreCase(subject) || "Free".equalsIgnoreCase(subject)) ? "" : String.format("\n(%s)", course.getTeacherName());
+            Paragraph p = new Paragraph().add(new com.itextpdf.layout.element.Text(status + subject).setBold());
+            if (!teacher.isEmpty()) p.add(new com.itextpdf.layout.element.Text(teacher).setFontSize(9));
+            cell.add(p);
+            if (withColor) {
+                if ("Recess".equalsIgnoreCase(subject) || "Free".equalsIgnoreCase(subject)) cell.setBackgroundColor(new DeviceRgb(255, 249, 196));
+                else {
+                    int cIndex = colors.length > 0 ? Math.abs(subject.hashCode()) % colors.length : 0;
+                    int c = colors.length > 0 ? colors[cIndex] : Color.LTGRAY;
+                    cell.setBackgroundColor(new DeviceRgb(Color.red(c), Color.green(c), Color.blue(c)));
+                }
+            }
+        } else cell.add(new Paragraph(""));
+        table.addCell(cell);
+    }
 
-        GradientDrawable dotDrawable = (GradientDrawable) ContextCompat.getDrawable(getContext(), R.drawable.legend_color_dot).mutate();
-        dotDrawable.setColor(color);
-        colorDot.setImageDrawable(dotDrawable);
-
-        legendText.setText(text);
-        grid.addView(legendItemView);
+    private void sharePdf(File file) {
+        if (getContext() == null) return;
+        Uri uri = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".provider", file);
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("application/pdf");
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(Intent.createChooser(intent, "Share Timetable PDF"));
     }
 
     private String getStatusPrefix(String status) {
         if (status == null) return "";
-        switch (status) {
-            case "Attended": return "✅ ";
-            case "Skipped": return "❌ ";
-            default: return "";
-        }
+        return "Attended".equals(status) ? "✅ " : "Skipped".equals(status) ? "❌ " : "";
     }
 
-    private void showActionDialog(final CourseModel course) {
-        if (getContext() == null) return;
-        final String[] options = {"Mark as Attended", "Mark as Skipped", "Edit Details", "Clear Status"};
-
-        new AlertDialog.Builder(getContext())
-                .setTitle("Choose Action")
-                .setItems(options, (dialog, which) -> {
-                    switch (which) {
-                        case 0: 
-                            dbHelper.updateLectureStatus(course.getCourseid(), "Attended");
-                            loadTimetable();
-                            break;
-                        case 1: 
-                            dbHelper.updateLectureStatus(course.getCourseid(), "Skipped");
-                            loadTimetable();
-                            break;
-                        case 2: 
-                            showEditDialog(course);
-                            break;
-                        case 3: 
-                            dbHelper.updateLectureStatus(course.getCourseid(), null);
-                            loadTimetable();
-                            break;
-                    }
-                })
-                .show();
-    }
-
-    private void showEditDialog(CourseModel course) {
-        if (getContext() == null) return;
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle("Edit Entry");
-        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_edit_timetable, null);
-        final EditText inputSubject = dialogView.findViewById(R.id.etEditSubject);
-        final EditText inputTeacher = dialogView.findViewById(R.id.etEditTeacher);
-        builder.setView(dialogView);
-        inputSubject.setText(course.getSubjectName());
-        inputTeacher.setText(course.getTeacherName());
-        builder.setPositiveButton("Save", (dialog, which) -> {
-            String newSubject = inputSubject.getText().toString().trim();
-            String newTeacher = inputTeacher.getText().toString().trim();
-            if (!newSubject.isEmpty() && !newTeacher.isEmpty()) {
-                course.setSubjectName(newSubject);
-                course.setTeacherName(newTeacher);
-                dbHelper.updateTimetableEntry(course);
-                loadTimetable();
-                Toast.makeText(getContext(), "Entry Updated", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(getContext(), "Fields cannot be empty", Toast.LENGTH_SHORT).show();
-            }
-        });
-        builder.setNegativeButton("Cancel", null);
-        builder.show();
+    private String getAbbreviation(String name, int threshold) {
+        if (name == null || name.isEmpty()) return "";
+        if (name.length() <= threshold && !name.contains(" ")) return name;
+        StringBuilder abbr = new StringBuilder();
+        for (String word : name.split("\\s+")) if (!word.isEmpty()) abbr.append(Character.toUpperCase(word.charAt(0)));
+        return abbr.toString();
     }
 
     private int[] getColorArray() {
+        if (getContext() == null) return new int[0];
         SharedPreferences preferences = getContext().getSharedPreferences("user_details", Context.MODE_PRIVATE);
-        int theme = preferences.getInt("timetable_theme", 9); // Default to new muted pastels
+        int themeIndex = preferences.getInt("timetable_theme", 0);
         int arrayId;
-        switch (theme) {
+        switch (themeIndex) {
             case 1: arrayId = R.array.vibrant_colors; break;
             case 2: arrayId = R.array.pastel_colors; break;
             case 3: arrayId = R.array.corporate_blue_colors; break;
@@ -349,222 +569,47 @@ public class TimetableFragment extends Fragment {
             case 6: arrayId = R.array.emerald_colors; break;
             case 7: arrayId = R.array.lavender_bliss_colors; break;
             case 8: arrayId = R.array.minty_fresh_colors; break;
-            case 9: arrayId = R.array.muted_pastels; break;
-            default: arrayId = R.array.vibrant_colors;
+            default: arrayId = R.array.muted_pastels;
         }
         TypedArray ta = getResources().obtainTypedArray(arrayId);
         int[] colors = new int[ta.length()];
-        for (int i = 0; i < ta.length(); i++) {
-            colors[i] = ta.getColor(i, 0);
-        }
+        for (int i = 0; i < ta.length(); i++) colors[i] = ta.getColor(i, 0);
         ta.recycle();
         return colors;
-    }
-
-    private Map<String, Integer> getSubjectColorMap(ArrayList<CourseModel> timetableList) {
-        Map<String, Integer> subjectColorMap = new HashMap<>();
-        int colorIndex = 0;
-        int[] colorArray = getColorArray();
-        if (colorArray.length == 0) return subjectColorMap;
-
-        for (CourseModel course : timetableList) {
-            if (!"Recess".equalsIgnoreCase(course.getSubjectName()) && !"Free".equalsIgnoreCase(course.getSubjectName()) && !subjectColorMap.containsKey(course.getSubjectName())) {
-                subjectColorMap.put(course.getSubjectName(), colorArray[colorIndex % colorArray.length]);
-                colorIndex++;
-            }
-        }
-        return subjectColorMap;
-    }
-
-    private String getAbbreviation(String name, int threshold) {
-        if (name == null || name.isEmpty()) return "";
-        if (name.length() <= threshold && !name.contains(" ")) {
-            return name;
-        }
-        StringBuilder abbreviation = new StringBuilder();
-        for (String word : name.split("\\s+")) {
-            if (!word.isEmpty()) {
-                abbreviation.append(Character.toUpperCase(word.charAt(0)));
-            }
-        }
-        return abbreviation.toString();
     }
 
     private TextView createStyledTextView(CharSequence text, int styleResId, int backgroundColor) {
         TextView textView = new TextView(getContext());
         textView.setText(text);
-        if (styleResId != 0) {
-            textView.setTextAppearance(styleResId);
-        }
-
+        textView.setPadding(dpToPx(10), dpToPx(10), dpToPx(10), dpToPx(10));
+        textView.setGravity(Gravity.CENTER);
         GradientDrawable background = new GradientDrawable();
         background.setShape(GradientDrawable.RECTANGLE);
         background.setColor(backgroundColor);
-        background.setStroke(dpToPx(1), ContextCompat.getColor(getContext(), R.color.grid_divider));
+        background.setStroke(dpToPx(1), Color.parseColor("#E0E0E0"));
         textView.setBackground(background);
-
-        int padding = dpToPx(8);
-        textView.setPadding(padding, padding, padding, padding);
-        textView.setGravity(Gravity.CENTER);
         return textView;
     }
 
     private TextView createHeaderTextView(String text) {
-        TextView textView = createStyledTextView(text, 0, ContextCompat.getColor(getContext(), R.color.professional_header_bg));
-        textView.setTextColor(ContextCompat.getColor(getContext(), R.color.professional_header_text));
+        TextView textView = createStyledTextView(text, 0, Color.parseColor("#FDEAEA"));
+        textView.setTypeface(null, Typeface.BOLD);
+        textView.setTextColor(Color.parseColor("#1A237E"));
         return textView;
     }
 
     private TextView createTimeCellTextView(String text) {
-        return createStyledTextView(text, 0, ContextCompat.getColor(getContext(), R.color.time_column_bg));
+        return createStyledTextView(text, 0, Color.parseColor("#F8D7DA"));
     }
 
     private int dpToPx(int dp) {
+        if (getContext() == null) return dp;
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, getResources().getDisplayMetrics());
     }
 
-    private void generateAndSharePdf() {
-        if (getContext() == null) return;
-        ArrayList<CourseModel> timetableList = dbHelper.getAllTimetableEntries();
-        if (timetableList.isEmpty()) {
-            Toast.makeText(getContext(), "Timetable is empty, nothing to share.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String courseName = timetableList.get(0).getCourseName();
-        File pdfFile = createPdfFile(courseName);
-        if (pdfFile == null) {
-            Toast.makeText(getContext(), "Failed to create PDF file.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        try (PdfWriter writer = new PdfWriter(pdfFile); PdfDocument pdf = new PdfDocument(writer); Document document = new Document(pdf)) {
-            document.add(new Paragraph(courseName).setBold().setFontSize(20));
-
-            SharedPreferences preferences = getContext().getSharedPreferences("user_details", Context.MODE_PRIVATE);
-            int orientation = preferences.getInt("timetable_orientation", 0);
-            Map<String, Integer> subjectColorMap = getSubjectColorMap(timetableList);
-
-            Map<String, Map<String, CourseModel>> groupedByTime = new LinkedHashMap<>();
-            for (CourseModel course : timetableList) {
-                groupedByTime.computeIfAbsent(course.getTimeslot(), k -> new LinkedHashMap<>());
-                groupedByTime.get(course.getTimeslot()).put(course.getDay().toUpperCase(), course);
-            }
-
-            List<String> sortedTimeslots = new ArrayList<>(groupedByTime.keySet());
-
-            if (orientation == 1) { // Horizontal
-                drawHorizontalPdfForPdf(document, subjectColorMap, groupedByTime, sortedTimeslots);
-            } else { // Classic
-                Collections.sort(sortedTimeslots, Comparator.comparingInt(this::extractStartTime));
-                drawClassicPdfForPdf(document, subjectColorMap, groupedByTime, sortedTimeslots);
-            }
-
-            TimetableHistory history = new TimetableHistory(0, courseName, pdfFile.getAbsolutePath(), System.currentTimeMillis());
-            dbHelper.addTimetableHistory(history);
-
-            sharePdf(pdfFile);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(getContext(), "Error creating PDF.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void drawClassicPdfForPdf(Document document, Map<String, Integer> subjectColorMap, Map<String, Map<String, CourseModel>> groupedByTime, List<String> sortedTimeslots) {
-        float[] columnWidths = {2f, 3f, 3f, 3f, 3f, 3f, 3f};
-        Table table = new Table(UnitValue.createPercentArray(columnWidths));
-
-        DeviceRgb headerColor = new DeviceRgb(232, 234, 246);
-        table.addHeaderCell(new Cell().add(new Paragraph("TIME")).setBackgroundColor(headerColor));
-        for (String day : daysOrder) {
-            table.addHeaderCell(new Cell().add(new Paragraph(day)).setBackgroundColor(headerColor));
-        }
-
-        for (String timeslot : sortedTimeslots) {
-            table.addCell(new Cell().add(new Paragraph(timeslot)).setBackgroundColor(new DeviceRgb(245, 245, 245)));
-            Map<String, CourseModel> coursesForTime = groupedByTime.get(timeslot);
-            for (String day : daysOrder) {
-                CourseModel course = coursesForTime != null ? coursesForTime.get(day) : null;
-                Cell classCell;
-                if (course != null) {
-                     if ("Recess".equalsIgnoreCase(course.getSubjectName())) {
-                        classCell = new Cell().add(new Paragraph("Recess"));
-                        classCell.setBackgroundColor(new DeviceRgb(245, 245, 245));
-                    } else {
-                        String statusPrefix = getStatusPrefix(course.getStatus());
-                        classCell = new Cell().add(new Paragraph(statusPrefix + course.getSubjectName() + "\n" + course.getTeacherName()));
-                        Integer androidColor = subjectColorMap.get(course.getSubjectName());
-                        if (androidColor == null) androidColor = Color.WHITE;
-                        DeviceRgb cellColor = new DeviceRgb(Color.red(androidColor), Color.green(androidColor), Color.blue(androidColor));
-                        classCell.setBackgroundColor(cellColor);
-                    }
-                } else {
-                    classCell = new Cell().add(new Paragraph(""));
-                }
-                table.addCell(classCell);
-            }
-        }
-        document.add(table);
-    }
-    
-    private void drawHorizontalPdfForPdf(Document document, Map<String, Integer> subjectColorMap, Map<String, Map<String, CourseModel>> groupedByTime, List<String> sortedTimeslots) {
-        float[] columnWidths = new float[sortedTimeslots.size() + 1];
-        Arrays.fill(columnWidths, 3f);
-        columnWidths[0] = 2f;
-        Table table = new Table(UnitValue.createPercentArray(columnWidths));
-
-        DeviceRgb headerColor = new DeviceRgb(232, 234, 246);
-        table.addHeaderCell(new Cell().add(new Paragraph("DAY")).setBackgroundColor(headerColor));
-        for (String timeslot : sortedTimeslots) {
-            table.addHeaderCell(new Cell().add(new Paragraph(timeslot)).setBackgroundColor(headerColor));
-        }
-
-        for (String day : daysOrder) {
-            table.addCell(new Cell().add(new Paragraph(day)).setBackgroundColor(new DeviceRgb(245, 245, 245)));
-            for (String timeslot : sortedTimeslots) {
-                CourseModel course = groupedByTime.get(timeslot) != null ? groupedByTime.get(timeslot).get(day) : null;
-                Cell classCell;
-                if (course != null) {
-                     if ("Recess".equalsIgnoreCase(course.getSubjectName())) {
-                        classCell = new Cell().add(new Paragraph("Recess"));
-                        classCell.setBackgroundColor(new DeviceRgb(245, 245, 245));
-                    } else {
-                        String statusPrefix = getStatusPrefix(course.getStatus());
-                        classCell = new Cell().add(new Paragraph(statusPrefix + course.getSubjectName() + "\n" + course.getTeacherName()));
-                        Integer androidColor = subjectColorMap.get(course.getSubjectName());
-                        if (androidColor == null) androidColor = Color.WHITE;
-                        DeviceRgb cellColor = new DeviceRgb(Color.red(androidColor), Color.green(androidColor), Color.blue(androidColor));
-                        classCell.setBackgroundColor(cellColor);
-                    }
-                } else {
-                    classCell = new Cell().add(new Paragraph(""));
-                }
-                table.addCell(classCell);
-            }
-        }
-        document.add(table);
-    }
-
-    private File createPdfFile(String courseName) {
-        String fileName = courseName.replaceAll("[^a-zA-Z0-9]", "") + "_" + System.currentTimeMillis() + ".pdf";
-        File pdfPath = getContext().getExternalFilesDir("pdfs");
-        if (pdfPath == null) return null;
-        if (!pdfPath.exists()) pdfPath.mkdirs();
-        return new File(pdfPath, fileName);
-    }
-
-    private void sharePdf(File file) {
-        if (getContext() == null) return;
-        Uri fileUri = FileProvider.getUriForFile(getContext(), getContext().getApplicationContext().getPackageName() + ".provider", file);
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType("application/pdf");
-        shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
-        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        try {
-            startActivity(Intent.createChooser(shareIntent, "Share Timetable PDF"));
-        } catch (ActivityNotFoundException e) {
-            Toast.makeText(getContext(), "No app found to share PDF", Toast.LENGTH_SHORT).show();
-        }
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadData();
     }
 }
