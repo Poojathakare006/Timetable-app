@@ -14,14 +14,31 @@
         android:layout_marginBottom="24dp"
         android:background="#DDDDDD" />
 
-    <TextView
-        android:id="@+id/bsSubject"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Subject Name"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:textColor="#212121" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/bsSubject"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Subject Name"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#212121" />
+
+        <ImageButton
+            android:id="@+id/btnEditLecture"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_edit"
+            app:tint="@color/brand_primary"
+            android:visibility="gone" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/bsFaculty"
@@ -42,6 +59,7 @@
         android:layout_marginTop="2dp" />
 
     <LinearLayout
+        android:id="@+id/lectureActionButtons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"

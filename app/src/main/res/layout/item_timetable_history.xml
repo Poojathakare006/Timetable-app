@@ -54,7 +54,9 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="4dp"
-                android:text="View" />
+                android:text="View"
+                android:textColor="@color/brand_primary"
+                app:strokeColor="@color/brand_primary" />
 
             <Button
                 android:id="@+id/btnSharePdf"
@@ -64,7 +66,9 @@
                 android:layout_weight="1"
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
-                android:text="Share" />
+                android:text="Share"
+                android:textColor="@color/brand_primary"
+                app:strokeColor="@color/brand_primary" />
 
             <Button
                 android:id="@+id/btnDeletePdf"

@@ -15,12 +15,14 @@ import android.text.style.StyleSpan;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -34,6 +36,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.timetableapplication.AddPersonalTimetableActivity;
 import com.example.timetableapplication.AddTimetableActivity;
 import com.example.timetableapplication.DBHelper;
 import com.example.timetableapplication.ModelClass.CourseModel;
@@ -71,6 +74,7 @@ public class TimetableFragment extends Fragment {
     private TableLayout tableTimetable;
     private View weeklyScrollView;
     private GridLayout legend_grid; 
+    private View fabContainer;
     private FloatingActionButton fab_add_timetable;
     private Button btnSharePdf;
     private ImageButton btnFilterFaculty, btnFilterSubject, btnLegendInfo;
@@ -78,6 +82,7 @@ public class TimetableFragment extends Fragment {
     private TextView tvCourseTitle;
     private View legend_card;
     private String role;
+    private String username;
     private boolean isWeeklyView = false;
     
     private String currentSearchQuery = "";
@@ -88,18 +93,25 @@ public class TimetableFragment extends Fragment {
     private ArrayList<CourseModel> fullTimetableList = new ArrayList<>();
     private ArrayList<CourseModel> filteredTimetableList = new ArrayList<>();
 
+    private float dX, dY;
+    private static final int CLICK_DRAG_TOLERANCE = 10;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_timetable, container, false);
 
         dbHelper = new DBHelper(getContext());
-        
+        SharedPreferences preferences = getActivity().getSharedPreferences("user_details", Context.MODE_PRIVATE);
+        role = preferences.getString("role", "Student");
+        username = preferences.getString("username", "");
+
         rvTimetable = view.findViewById(R.id.rvTimetable);
         tableTimetable = view.findViewById(R.id.tableTimetable);
         weeklyScrollView = view.findViewById(R.id.weeklyScrollView);
         legend_grid = view.findViewById(R.id.legend_grid); 
         legend_card = view.findViewById(R.id.legend_card);
+        fabContainer = view.findViewById(R.id.fab_container);
         fab_add_timetable = view.findViewById(R.id.fab_add_timetable);
         btnSharePdf = view.findViewById(R.id.btnSharePdf);
         tvCourseTitle = view.findViewById(R.id.tvCourseTitle);
@@ -115,23 +127,8 @@ public class TimetableFragment extends Fragment {
         setupToggle(view);
         setupSearchAndFilters();
 
-        if (getActivity() != null && getActivity().getIntent() != null) {
-            role = getActivity().getIntent().getStringExtra("role");
-            if (role != null && role.equalsIgnoreCase("student")) {
-                if (fab_add_timetable != null) fab_add_timetable.setVisibility(View.GONE);
-            }
-        }
-
         if (fab_add_timetable != null) {
-            fab_add_timetable.setOnClickListener(v -> {
-                if (getActivity() != null) {
-                    Intent intent = new Intent(getActivity(), AddTimetableActivity.class);
-                    SharedPreferences preferences = getActivity().getSharedPreferences("user_details", Context.MODE_PRIVATE);
-                    String userId = preferences.getString("user_id", null);
-                    intent.putExtra("user_id", userId);
-                    startActivity(intent);
-                }
-            });
+            setupMovableFab();
         }
 
         if (btnSharePdf != null) {
@@ -146,10 +143,84 @@ public class TimetableFragment extends Fragment {
                 }
             });
         }
-
         loadData();
 
         return view;
+    }
+
+    private void setupMovableFab() {
+        if (fabContainer == null) return;
+
+        fab_add_timetable.setOnTouchListener(new View.OnTouchListener() {
+            private float initialX, initialY;
+            private boolean isDragging = false;
+
+            @Override
+            public boolean onTouch(View view, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        dX = fabContainer.getX() - event.getRawX();
+                        dY = fabContainer.getY() - event.getRawY();
+                        initialX = event.getRawX();
+                        initialY = event.getRawY();
+                        isDragging = false;
+                        return true;
+
+                    case MotionEvent.ACTION_MOVE:
+                        float newX = event.getRawX() + dX;
+                        float newY = event.getRawY() + dY;
+
+                        View parent = (View) fabContainer.getParent();
+                        if (newX < 0) newX = 0;
+                        if (newX > parent.getWidth() - fabContainer.getWidth())
+                            newX = parent.getWidth() - fabContainer.getWidth();
+                        
+                        if (newY < 0) newY = 0;
+                        if (newY > parent.getHeight() - fabContainer.getHeight())
+                            newY = parent.getHeight() - fabContainer.getHeight();
+
+                        fabContainer.animate().x(newX).y(newY).setDuration(0).start();
+
+                        if (Math.abs(event.getRawX() - initialX) > CLICK_DRAG_TOLERANCE || 
+                            Math.abs(event.getRawY() - initialY) > CLICK_DRAG_TOLERANCE) {
+                            isDragging = true;
+                        }
+                        return true;
+
+                    case MotionEvent.ACTION_UP:
+                        if (!isDragging) {
+                            showCreationOptionsDialog();
+                        }
+                        return true;
+
+                    default:
+                        return false;
+                }
+            }
+        });
+    }
+
+    private void showCreationOptionsDialog() {
+        if (getContext() == null) return;
+        
+        List<String> optionsList = new ArrayList<>();
+        optionsList.add("Create Personal Timetable");
+        if ("Teacher".equalsIgnoreCase(role)) {
+            optionsList.add("Create School/College Timetable");
+        }
+        
+        String[] options = optionsList.toArray(new String[0]);
+        new AlertDialog.Builder(getContext())
+                .setTitle("Select Timetable Type")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        startActivity(new Intent(getActivity(), AddPersonalTimetableActivity.class));
+                    } else {
+                        Intent intent = new Intent(getActivity(), AddTimetableActivity.class);
+                        startActivity(intent);
+                    }
+                })
+                .show();
     }
 
     private void setupToggle(View view) {
@@ -251,13 +322,13 @@ public class TimetableFragment extends Fragment {
 
     private void loadData() {
         if (getContext() == null) return;
-        fullTimetableList = dbHelper.getAllTimetableEntries();
+        fullTimetableList = dbHelper.getUserTimetable(username);
         applyFilters();
     }
 
     private void updateView() {
         if (fullTimetableList.isEmpty()) {
-            if (tvCourseTitle != null) tvCourseTitle.setText("No Timetable Generated");
+            if (tvCourseTitle != null) tvCourseTitle.setText("No Timetable Found");
             if (legend_card != null) legend_card.setVisibility(View.GONE);
             if (rvTimetable != null) rvTimetable.setVisibility(View.GONE);
             if (weeklyScrollView != null) weeklyScrollView.setVisibility(View.GONE);
@@ -280,10 +351,13 @@ public class TimetableFragment extends Fragment {
 
     private void drawDailyList() {
         String today = new SimpleDateFormat("EEE", Locale.US).format(new Date()).toUpperCase();
+        if (today.equals("SUN")) today = "MON";
+        
         ArrayList<CourseModel> todayList = new ArrayList<>();
         for (CourseModel course : filteredTimetableList) {
             if (course.getDay().equalsIgnoreCase(today)) todayList.add(course);
         }
+
         int[] colors = getColorArray();
         TimetableAdapter adapter = new TimetableAdapter(getContext(), todayList, colors, this::showLectureDetailsBottomSheet);
         if (rvTimetable != null) rvTimetable.setAdapter(adapter);
@@ -355,12 +429,35 @@ public class TimetableFragment extends Fragment {
         Button btnSaveNotes = sheetView.findViewById(R.id.btnSaveNotes);
         Button btnMarkAttended = sheetView.findViewById(R.id.btnMarkAttended);
         Button btnMarkSkipped = sheetView.findViewById(R.id.btnMarkSkipped);
+        ImageButton btnEditLecture = sheetView.findViewById(R.id.btnEditLecture);
 
         if (tvSubject != null) tvSubject.setText(course.getSubjectName());
         if (tvFaculty != null) tvFaculty.setText(String.format("Faculty: %s", course.getTeacherName()));
         if (tvClassroom != null) tvClassroom.setText(String.format("Classroom: %s", (course.getClassName() != null && !course.getClassName().isEmpty()) ? course.getClassName() : "Not Assigned"));
 
         if (etNotes != null) etNotes.setText(dbHelper.getLectureNotes(course.getCourseid()));
+
+        // Edit functionality for Teachers
+        if ("Teacher".equalsIgnoreCase(role)) {
+            if (btnEditLecture != null) {
+                btnEditLecture.setVisibility(View.VISIBLE);
+                btnEditLecture.setOnClickListener(v -> {
+                    showEditLectureDialog(course, bottomSheetDialog);
+                });
+            }
+        }
+
+        // Restriction: Students can't edit School/College timetables
+        if ("Student".equalsIgnoreCase(role) && !"Personal Timetable".equals(course.getCourseName())) {
+            if (btnSaveNotes != null) btnSaveNotes.setVisibility(View.GONE);
+            if (btnMarkAttended != null) btnMarkAttended.setVisibility(View.GONE);
+            if (btnMarkSkipped != null) btnMarkSkipped.setVisibility(View.GONE);
+            if (etNotes != null) {
+                etNotes.setFocusable(false);
+                etNotes.setClickable(false);
+                etNotes.setHint("Notes can only be edited by teachers");
+            }
+        }
 
         if (btnSaveNotes != null) {
             btnSaveNotes.setOnClickListener(v -> {
@@ -392,6 +489,51 @@ public class TimetableFragment extends Fragment {
 
         bottomSheetDialog.setContentView(sheetView);
         bottomSheetDialog.show();
+    }
+
+    private void showEditLectureDialog(CourseModel course, BottomSheetDialog parentSheet) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Edit Lecture Details");
+
+        LinearLayout layout = new LinearLayout(getContext());
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 10);
+
+        final EditText etSub = new EditText(getContext());
+        etSub.setHint("Subject Name");
+        etSub.setText(course.getSubjectName());
+        layout.addView(etSub);
+
+        final EditText etFac = new EditText(getContext());
+        etFac.setHint("Faculty Name");
+        etFac.setText(course.getTeacherName());
+        layout.addView(etFac);
+
+        final EditText etRoom = new EditText(getContext());
+        etRoom.setHint("Classroom/Lab");
+        etRoom.setText(course.getClassName());
+        layout.addView(etRoom);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Update", (dialog, which) -> {
+            String newSub = etSub.getText().toString().trim();
+            String newFac = etFac.getText().toString().trim();
+            String newRoom = etRoom.getText().toString().trim();
+
+            if (!newSub.isEmpty() && !newFac.isEmpty()) {
+                if (dbHelper.updateTimetableEntry(course.getCourseid(), newFac, newSub, newRoom)) {
+                    Toast.makeText(getContext(), "Timetable Updated!", Toast.LENGTH_SHORT).show();
+                    loadData();
+                    parentSheet.dismiss();
+                }
+            } else {
+                Toast.makeText(getContext(), "Subject and Faculty cannot be empty", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
     }
 
     private void updateLegend() {
@@ -439,7 +581,7 @@ public class TimetableFragment extends Fragment {
         String courseName = filteredTimetableList.get(0).getCourseName();
         File pdfDir = new File(getContext().getExternalFilesDir(null), "pdfs");
         if (!pdfDir.exists() && !pdfDir.mkdirs()) return;
-        File pdfFile = new File(pdfDir, String.format("%s_%d.pdf", courseName, System.currentTimeMillis()));
+        File pdfFile = new File(pdfDir, String.format(Locale.US, "%s_%d.pdf", courseName, System.currentTimeMillis()));
         
         SharedPreferences preferences = getContext().getSharedPreferences("user_details", Context.MODE_PRIVATE);
         int orientation = preferences.getInt("timetable_orientation", 0);
@@ -486,6 +628,7 @@ public class TimetableFragment extends Fragment {
         }
         document.add(table);
     }
+
     private void generateHorizontalPdf(Document document, boolean withColor) {
         Map<String, Map<String, CourseModel>> groupedByTime = new LinkedHashMap<>();
         for (CourseModel course : filteredTimetableList) {
@@ -571,11 +714,11 @@ public class TimetableFragment extends Fragment {
             case 8: arrayId = R.array.minty_fresh_colors; break;
             default: arrayId = R.array.muted_pastels;
         }
-        TypedArray ta = getResources().obtainTypedArray(arrayId);
-        int[] colors = new int[ta.length()];
-        for (int i = 0; i < ta.length(); i++) colors[i] = ta.getColor(i, 0);
-        ta.recycle();
-        return colors;
+        try (TypedArray ta = getResources().obtainTypedArray(arrayId)) {
+            int[] colors = new int[ta.length()];
+            for (int i = 0; i < ta.length(); i++) colors[i] = ta.getColor(i, 0);
+            return colors;
+        }
     }
 
     private TextView createStyledTextView(CharSequence text, int styleResId, int backgroundColor) {

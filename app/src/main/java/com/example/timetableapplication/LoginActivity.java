@@ -14,6 +14,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.timetableapplication.ModelClass.User;
+
 public class LoginActivity extends AppCompatActivity {
 
     EditText etLoginUsername, etLoginPassword;
@@ -65,12 +67,20 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             if (dbHelper.checkLogin(username, password)) {
-                editor.putBoolean("isLogin", true);
-                editor.putString("username", username);
-                editor.apply();
-                Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-                finish();
+                User user = dbHelper.getUser(username);
+                if (user != null) {
+                    editor.putBoolean("isLogin", true);
+                    editor.putString("username", username);
+                    editor.putString("name", user.getName());
+                    editor.putString("role", user.getUserType());
+                    editor.apply();
+                    Toast.makeText(this, "Login Successful", Toast.LENGTH_SHORT).show();
+                    
+                    Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                    intent.putExtra("role", user.getUserType());
+                    startActivity(intent);
+                    finish();
+                }
             } else {
                 Toast.makeText(this, "Invalid Credentials", Toast.LENGTH_SHORT).show();
             }

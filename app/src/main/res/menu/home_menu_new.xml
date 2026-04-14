@@ -2,11 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item
-        android:id="@+id/action_share_pdf"
-        android:icon="@drawable/ic_share"
-        android:title="Share PDF"
-        app:showAsAction="always" />
 
     <item
         android:id="@+id/menu_profile"
@@ -17,8 +12,7 @@
     <item
         android:id="@+id/menu_settings"
         android:icon="@drawable/ic_settings"
-        android:title="Settings"
-        app:showAsAction="ifRoom" />
+        android:title="Settings" />
 
     <item
         android:id="@+id/menu_about_us"

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_checked="true" android:color="@color/dashboard_header" />
+    <!-- Active tab is Brand Blue -->
+    <item android:state_checked="true" android:color="@color/brand_primary" />
+    <!-- Inactive tabs are Grey -->
     <item android:state_checked="false" android:color="@color/dashboard_nav_inactive"/>
 </selector>

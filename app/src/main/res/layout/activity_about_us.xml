@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFF0F5"
+    android:background="@color/bg_light"
+    android:fitsSystemWindows="true"
     tools:context=".AboutUsActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -16,7 +17,7 @@
             android:id="@+id/toolbar_about_us"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/dashboard_header"
+            android:background="@color/brand_primary"
             app:title="About Us"
             app:titleTextColor="@color/white"/>
 
@@ -36,7 +37,7 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="#FFFAFA"
+                app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
                 app:cardUseCompatPadding="true">
@@ -52,14 +53,16 @@
                         android:layout_height="wrap_content"
                         android:text="About Us"
                         android:textSize="22sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="We are a passionate team building a smart Timetable Management System to simplify academic scheduling through efficient digital solutions."
-                        android:textSize="16sp" />
+                        android:textSize="16sp"
+                        android:textColor="@color/text_secondary" />
 
                 </LinearLayout>
 
@@ -69,7 +72,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                app:cardBackgroundColor="#FFFAFA"
+                app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
                 app:cardUseCompatPadding="true">
@@ -85,7 +88,8 @@
                         android:layout_height="wrap_content"
                         android:text="Our Team"
                         android:textSize="22sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -93,13 +97,15 @@
                         android:layout_marginTop="16dp"
                         android:text="Pooja Thakare – Founder &amp; Project Lead"
                         android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Concept development, planning, and overall execution."
-                        android:textSize="16sp" />
+                        android:textSize="16sp"
+                        android:textColor="@color/text_secondary" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -107,13 +113,15 @@
                         android:layout_marginTop="12dp"
                         android:text="Bhavika – Development &amp; Design Support"
                         android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="System design and feature implementation."
-                        android:textSize="16sp" />
+                        android:textSize="16sp"
+                        android:textColor="@color/text_secondary" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -121,13 +129,32 @@
                         android:layout_marginTop="12dp"
                         android:text="Dnyaneshwari – Research &amp; Testing Lead"
                         android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Requirement analysis, testing, and documentation."
-                        android:textSize="16sp" />
+                        android:textSize="16sp"
+                        android:textColor="@color/text_secondary" />
+
+                    <!-- Added Member -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Atharva Khandekar – Backend Developer"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="API development and database management."
+                        android:textSize="16sp"
+                        android:textColor="@color/text_secondary" />
 
                 </LinearLayout>
 
@@ -137,7 +164,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                app:cardBackgroundColor="#FFFAFA"
+                app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
                 app:cardUseCompatPadding="true">
@@ -153,14 +180,16 @@
                         android:layout_height="wrap_content"
                         android:text="Our Mission"
                         android:textSize="22sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="To make timetable management smarter, faster, and stress-free for students and institutions."
-                        android:textSize="16sp" />
+                        android:textSize="16sp"
+                        android:textColor="@color/text_secondary" />
 
                 </LinearLayout>
 

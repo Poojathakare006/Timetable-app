@@ -72,6 +72,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
+
         tvEditProfile.setOnClickListener(v -> startActivity(new Intent(SettingsActivity.this, MyProfileActivity.class)));
         btnLogout.setOnClickListener(v -> showLogoutDialog());
         tvChangePassword.setOnClickListener(v -> showChangePasswordDialog());
@@ -94,7 +95,6 @@ public class SettingsActivity extends AppCompatActivity {
             preferences.edit().putBoolean("notifications_enabled", true).apply();
         }
     }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -108,22 +108,26 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
     }
-
     private void scheduleAlarm() {
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(this, AlarmReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         long interval = 15 * 60 * 1000;
-        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + interval, interval, pendingIntent);
+        // Use System.currentTimeMillis() as trigger time to fire the first one immediately
+        if (alarmManager != null) {
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+        }
         Toast.makeText(this, "Reminders Enabled", Toast.LENGTH_SHORT).show();
     }
 
     private void cancelAlarm() {
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(this, AlarmReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
-        alarmManager.cancel(pendingIntent);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        if (alarmManager != null) {
+            alarmManager.cancel(pendingIntent);
+        }
         Toast.makeText(this, "Reminders Disabled", Toast.LENGTH_SHORT).show();
     }
 

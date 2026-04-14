@@ -100,7 +100,8 @@
                 android:layout_height="wrap_content"
                 android:text="Today"
                 android:textAllCaps="false"
-                app:strokeColor="@color/divider" />
+                app:strokeColor="@color/brand_primary"
+                android:textColor="@color/brand_primary" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnWeeklyView"
@@ -109,7 +110,8 @@
                 android:layout_height="wrap_content"
                 android:text="Weekly"
                 android:textAllCaps="false"
-                app:strokeColor="@color/divider" />
+                app:strokeColor="@color/brand_primary"
+                android:textColor="@color/brand_primary" />
 
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
@@ -119,8 +121,6 @@
             android:layout_weight="1">
 
             <!-- Today's View -->
-
-            <!-- Weekly View -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvTimetable"
                 android:layout_width="match_parent"
@@ -130,6 +130,7 @@
                 android:visibility="visible"
                 tools:listitem="@layout/item_timetable_card" />
 
+            <!-- Weekly View -->
             <ScrollView
                 android:id="@+id/weeklyScrollView"
                 android:layout_width="match_parent"
@@ -185,16 +186,35 @@
 
     </LinearLayout>
 
-    <!-- Add FAB -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_add_timetable"
+    <FrameLayout
+        android:id="@+id/fab_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:src="@drawable/ic_add"
-        android:backgroundTint="@color/dashboard_header"
-        app:tint="@color/white"
-        app:elevation="6dp" />
+        android:layout_margin="16dp">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_add_timetable"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_add"
+            android:backgroundTint="@color/brand_primary"
+            app:tint="@color/white"
+            app:elevation="6dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSharePdf"
+            android:layout_width="wrap_content"
+            android:layout_height="56dp"
+            android:layout_marginEnd="72dp"
+            android:text="Share as PDF"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/brand_primary"
+            app:icon="@drawable/ic_share"
+            app:iconTint="@color/white"
+            app:cornerRadius="28dp"
+            app:elevation="6dp" />
+    </FrameLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

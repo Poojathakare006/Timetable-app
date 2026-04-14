@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/lavender"
+    android:background="@color/bg_light"
+    android:fitsSystemWindows="true"
     tools:context=".ContactUsActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -16,7 +17,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="@color/brand_primary"
             app:title="Contact Us"
             app:titleTextColor="@android:color/white" />
 
@@ -41,21 +42,23 @@
                 android:layout_height="wrap_content"
                 android:text="Get in Touch"
                 android:textSize="22sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="Have any questions or feedback? We'd love to hear from you!"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textColor="@color/text_secondary" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="16dp"
-                android:background="@android:color/darker_gray" />
+                android:background="@color/divider" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -63,7 +66,8 @@
                 android:drawableStart="@android:drawable/ic_dialog_email"
                 android:drawablePadding="8dp"
                 android:text="poojathakare110@gmail.com"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -72,7 +76,8 @@
                 android:drawableStart="@android:drawable/ic_menu_call"
                 android:drawablePadding="8dp"
                 android:text="+1 (234) 567-890"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textColor="@color/text_primary" />
 
         </LinearLayout>
 
